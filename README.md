@@ -31,11 +31,11 @@ Click the link for the [Installation Description](./InstallationDescription.md) 
 
 The demos can be used starting with the official 0.6 SDK release. 
 
-Here are the list of demos currently supported with python 3.10:
+Here is the list of demos currently supported with python 3.10:
 
 | Demo               | Description                                         | Status    |
 |--------------------|-----------------------------------------------------|-----------|
-| X7RangeDopplerRaw  | RangeDoppler visualisation of the Tx/Rx rawchannels | Available |
+| X7RangeDopplerRaw  | RangeDoppler visualization of the Tx/Rx rawchannels | Available |
 | X7BasebandRecorder | Baseband recorder for the X7-devkit                 | Coming    |
 | X7BasebandPlotter  | Live/Playback plotting of x7 baseband data          | Coming    |
 | ULPP_Presence1D    | Live/Playback plotting of x7 presence1d data        | Coming    |
