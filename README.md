@@ -1,6 +1,6 @@
 # novelda-uwb-demos
 
-Welcome to a repo dedicated to demos showcasing the capabilities of the Novelda X7 UWB chips.
+Welcome to a repo dedicated to demos showcasing the capabilities of the Novelda X7 UWB chip.
 
 
 If you want to use, modify and share the demos go ahead and clone the repo to 
@@ -12,26 +12,24 @@ downloaded at [dev.novelda.com](https://novelda.com/developer). For X7 and locat
 register, just note that for now unfortunately we can only provide access to a select list of customers.
 This is due to a limited stock of X7 devkits but we are working hard for this to change.
 
-So lets go ahead and get those demos up and running.
+So let us go ahead and get those demos up and running.
 
 ## Installation ##
 
 Currently the demos are supported on the following OS'es:
 
  OS                    | Since SDK version | Status    |
-|-----------------------|-------------------|-----------|
-| Windows 64-bit x86_64 | 0.6-beta          | Available |
-| Linux 64-bit x86_64   | 0.6-beta          | Available |
-| Mac osx 64-bit x86_64 | N/A               | Coming    |
-| Mac osx 64-bit arm64  | N/A               | Coming    |
+|-----------------------|---------|-----------|
+| Windows 64-bit x86_64 | 0.6     | Available |
+| Linux 64-bit x86_64   | 0.6     | Available |
+| Mac osx 64-bit x86_64 | N/A     | Coming    |
+| Mac osx 64-bit arm64  | N/A     | Coming    |
 
 Click the link for the [Installation Description](./InstallationDescription.md) necessary to use the demos 
 
 ## X7 Demos ##
 
 The demos can be used starting with the official 0.6 SDK release. 
-
-__Currently we have a 0.6-beta SDK version you can start testing against__.
 
 Here are the list of demos currently supported with python 3.10:
 
