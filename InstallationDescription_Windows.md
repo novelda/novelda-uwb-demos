@@ -11,9 +11,11 @@ __PySignalFlow__ is a python module that allows the user to configure and receiv
 
 ### Setting up PATH and PYTHONPATH ###
 
-For the Windows SDK, __PySignalFlow__ and other libraries are in the SDK_Root/bin directory. Using powershell you can temporarily add them like so
+For the Windows SDK, __PySignalFlow__ and other libraries are in the <Novelda_SDK_Root>/bin directory. Using powershell you can temporarily add them like so.
+
 ````
 $Env:PYTHONPATH += ";<path-to-sdk>/bin"
+$Env:PYTHONPATH += ";<path-to-novelda-uwb-demos-repo>/Nodes/Python/Novelda"
 $Env:PATH += ";<path-to-sdk>/bin"
 ````
 

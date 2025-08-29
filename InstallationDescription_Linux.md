@@ -15,6 +15,7 @@ There are several ways to do this. One way is to add the following to your .bash
 
 ``` 
 export PYTHONPATH=<path-to-sdk>/lib:$PYTHONPATH
+export PYTHONPATH=<path-to-novelda-uwb-demos-repo>/Nodes/Python/Novelda:$PYTHONPATH
 ```
 
 For the changes to take effect do:
