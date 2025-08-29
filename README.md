@@ -6,9 +6,9 @@ Welcome to a repo dedicated to demos showcasing the capabilities of the Novelda 
 If you want to use, modify and share the demos go ahead and clone the repo to 
 your machine. Our aim is to keep adding new demo contents to this site so stay updated.
 
-In order to use the demos you will need to download the SDK for the novelda uwb module. This can be
+In order to use the demos you will need to download the SDK for the Novelda UWB module. This can be
 downloaded at [dev.novelda.com](https://novelda.com/developer). For X7 locate the button with the caption
-"X7 documentation and software". You will need a valid login to access it. Anyone is free to try to
+"X7 documentation and software". You will need a valid login to access it. Anyone is free to
 register, just note that for now unfortunately we can only provide access to a select list of customers.
 This is due to a limited stock of X7 devkits but we are working hard for this to change.
 
