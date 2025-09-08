@@ -1,6 +1,10 @@
 # X7 RangeDoppler raw channels demo
 
-This document describes the X7 RangeDoppler raw channels demo and how to configure it. In addition the concept of Range-Doppler processing is briefly explained.
+This document describes the X7 RangeDoppler raw channels demo and how to configure it. In addition the concept of Range-Doppler processing is briefly explained. To run the demo just run the 'runX7RangeDopplerRaw.py' file with python.
+
+```
+python <path-to-runX7RangeDopplerRaw.py>
+```
 
 ## Description of the X7 RangeDoppler raw channels demo
 
