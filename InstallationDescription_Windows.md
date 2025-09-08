@@ -25,17 +25,17 @@ Or add them permanently in settings. Just search for "env" in Windows and it wil
 
 If you don't care about installing python packages in your global environment this isn't necessary.
 ````
-cd <DemoDirectory>
+cd Demos
 python -m venv .demos
 .\.demos\Scripts\activate
 ````
-This will create a new virtual environment in 'DemoDirectory' named '.demos' and activate it. To deactivate it, just run the command 'deactivate'.
+This will create a new virtual environment in 'Demos' named '.demos' and activate it. To deactivate it, just run the command 'deactivate'.
 
 Now you can run
 ````
 pip install -r path/to/requirements.txt
 ````
-The __requirements.txt__ file will be in the demo directory.
+The __requirements.txt__ file will be in the 'Demos' directory.
 
 #### Verification ####
 Start python3.10 interpreter and you should be able to do:

@@ -4,7 +4,19 @@ Welcome to a repo dedicated to demos showcasing the capabilities of the Novelda 
 
 
 If you want to use, modify and share the demos go ahead and clone the repo to 
-your machine. Our aim is to keep adding new demo contents to this site so stay updated.
+your machine.
+
+This repo uses [Git LFS](https://git-lfs.com/) for binary and image files. You must first install Git LFS and then set it up with
+ ```
+ git lfs install
+ ```
+If you have already cloned the repository before installing and setting up Git LFS, do
+ ```
+ git lfs install
+ git lfs pull
+ ```
+
+ Our aim is to keep adding new demo contents to this site so stay updated.
 
 In order to use the demos you will need to download the SDK for the Novelda UWB module. This can be
 downloaded at [dev.novelda.com](https://novelda.com/developer). For X7 locate the button with the caption

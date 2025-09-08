@@ -34,7 +34,7 @@ If this works without errors you have successfully setup the necessary path to b
 
 
 ### Installation of python dependencies ###
-There is a __requirements.txt__ file in this folder which contains a list of all necessary dependencies.
+There is a __requirements.txt__ file in the 'Demos' folder which contains a list of all necessary dependencies.
 
 Create a virtual environment with either: (you may name the virtual environment whatever you like)
 ```
@@ -50,7 +50,7 @@ or
 
 then do:
 ```
-> pip install -m requirements.txt
+> pip install -r requirements.txt
 ```
 
 
