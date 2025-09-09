@@ -23,7 +23,7 @@ Or add them permanently in settings. Just search for "env" in Windows and it wil
 
 ### Installation of python dependencies ###
 
-If you don't care about installing python packages in your global environment this isn't necessary.
+If you prefer installing python packages in a virtual environment instead of your global environment perform this step before __pip install__.
 ````
 cd Demos
 python -m venv .demos
@@ -33,7 +33,7 @@ This will create a new virtual environment in 'Demos' named '.demos' and activat
 
 Now you can run
 ````
-pip install -r path/to/requirements.txt
+pip install -r <path-to-novelda-uwb-demos-repo>/Demos/requirements.txt
 ````
 The __requirements.txt__ file will be in the 'Demos' directory.
 
