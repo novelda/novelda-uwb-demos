@@ -25,14 +25,7 @@ USED_KEYS = (QKeys.Key_Space, QKeys.Key_Left, QKeys.Key_Right,
              QKeys.Key_X, QKeys.Key_Z, QKeys.Key_Y)
 
 
-class SurfaceMark:
-    def __init__(self):
-        
-        self.xbin: int = -1
-        self.ybin: int = -1
-        self.zval: float = -1e10
-        self.label: QLabel = None
-        self.line: gl.GLLinePlotItem = None
+
 
 
 # for for pyqtgraphs alpha blending with depth test, not needed right now  
@@ -70,11 +63,11 @@ class AxisConfig:
         self.curr_max_val = np.float64(self.max_val)
     
     def bin2val(self, binval):
-        return (binval / self.num_bins) * (self.max_val - self.min_val) + self.min_val
+        return (binval / (self.num_bins-1)) * (self.max_val - self.min_val) + self.min_val
 
     def val2bin(self, val):
         """Remember, it returns float"""
-        return (val - self.min_val) / (self.max_val - self.min_val) * self.num_bins
+        return (val - self.min_val) / (self.max_val - self.min_val) * (self.num_bins-1)
 
     def clone(self):
         """Return an independent copy so plots don't share mutable state."""
@@ -279,7 +272,6 @@ class GLTextImage(gl.GLImageItem):
                 glDeleteTextures(int(self.texture))
                 del self.texture
 
-
 class ClippedGLSurfacePlotItem(gl.GLSurfacePlotItem):
     """GLSurfacePlotItem with axis-aligned XY clipping rectangle in item-local coords."""
     def __init__(self, *args, **kwargs):
@@ -295,6 +287,56 @@ class ClippedGLSurfacePlotItem(gl.GLSurfacePlotItem):
         self.update()
 
     def paint(self):
+        if self._clip_rect is None:
+            return super().paint()
+
+        from OpenGL.GL import (
+            glClipPlane, glEnable, glDisable,
+            GL_CLIP_PLANE0, GL_CLIP_PLANE1, GL_CLIP_PLANE2, GL_CLIP_PLANE3
+        )
+        xmin, xmax, ymin, ymax = self._clip_rect
+
+        # Keep points where all plane equations >= 0
+        planes = [
+            (GL_CLIP_PLANE0, (+1.0, 0.0, 0.0, -xmin)),  # x - xmin >= 0
+            (GL_CLIP_PLANE1, (-1.0, 0.0, 0.0, +xmax)),  # xmax - x >= 0
+            (GL_CLIP_PLANE2, (0.0, +1.0, 0.0, -ymin)),  # y - ymin >= 0
+            (GL_CLIP_PLANE3, (0.0, -1.0, 0.0, +ymax)),  # ymax - y >= 0
+        ]
+
+        try:
+            for enum, (a,b,c,d) in planes:
+                glClipPlane(enum, (a, b, c, d))
+                glEnable(enum)
+            super().paint()
+        finally:
+            for enum, _ in planes:
+                glDisable(enum)
+
+class SurfaceMark:
+    def __init__(self):
+        
+        self.xbin: int = -1
+        self.ybin: int = -1
+        self.zval: float = -1e10
+        self.label: QLabel = None
+        self.line: ClippedGLLinePlotItem = None
+
+class ClippedGLLinePlotItem(gl.GLLinePlotItem):
+    """GLLinePlotItem with axis-aligned XY clipping rectangle in item-local coords."""
+
+    def set_clip_rect(self, xmin, xmax, ymin, ymax):
+        self._clip_rect = (float(xmin), float(xmax), float(ymin), float(ymax))
+        self.update()
+
+    def clear_clip(self):
+        self._clip_rect = None
+        self.update()
+
+    def paint(self):
+        if not hasattr(self, '_clip_rect'):
+            self._clip_rect = None
+
         if self._clip_rect is None:
             return super().paint()
 
@@ -381,7 +423,7 @@ class Matrix3DPlot(object):
 
         self.things_to_trans: list[GLGraphicsItem] = []
 
-        self.wireframe_line: gl.GLLinePlotItem = None
+        self.wireframe_line: ClippedGLLinePlotItem = None
         self.wireframe_data: np.ndarray = None
         self.wireframe_on = False
         self.inx_wire_rows = []
@@ -394,23 +436,26 @@ class Matrix3DPlot(object):
         if plot_label:
             self.add_screen_text_overlay(plot_label, position="bottom-left")
         
-        self.xaxis_labels: list[GLTextImage] = []
-        self.yaxis_labels: list[GLTextImage] = []
-        self.zaxis_labels: list[GLTextImage] = []
+        # min max center
+        self.xaxis_labels: dict[str, GLTextImage] = {}
+        self.yaxis_labels: dict[str, GLTextImage] = {}
+        self.zaxis_labels: dict[str, GLTextImage] = {}
 
         self.color_bar_glimg: gl.GLImageItem = None
 
-        self.axes_labels_trans_dct: dict[GLTextImage, dict[CameraState, pg.Transform3D]] = {}
+        self.axes_labels_trans_dct: dict[str, dict[CameraState, pg.Transform3D]] = {}
         self.colorbar_trans_dct: dict[CameraState, pg.Transform3D] = {}
 
         self.camera_setups: dict[CameraState, CameraSetup] = {
             CameraState.ORTHO_X: CameraSetup(distance=2900*5, azimuth=-90, elevation=0, fov=0.1),
             CameraState.ORTHO_Y: CameraSetup(distance=2900*5, azimuth=0, elevation=0, fov=0.1),
-            CameraState.ORTHO_Z: CameraSetup(distance=4200*5, azimuth=0, elevation=90, fov=0.1),
+            CameraState.ORTHO_Z: CameraSetup(distance=5600*5, azimuth=0, elevation=90, fov=0.1),
             CameraState.DEFAULT: CameraSetup(distance=self.camera_distance, azimuth=self.camera_azimuth, elevation=28, fov=60),
         }
 
         self.curr_cam_state = CameraState.DEFAULT
+
+        self.non_clipped_curr_data = None
     
     def hotkey_callback(self, event: pg.QtGui.QKeyEvent):
         if event.key() == QKeys.Key_W:
@@ -501,13 +546,18 @@ class Matrix3DPlot(object):
         pos = event.position() if hasattr(event, "position") else event.pos()
         xbin, ybin, zval, closest_dist = self.get_point_of_click_surface(int(pos.x()), int(pos.y()), min_dist=min_dist)
 
-        if xbin is None or closest_dist > 4:
+        if closest_dist > 5:
+            self.remove_surface_mark()
+            return
+
+        if xbin is None or xbin < self.x_axis.val2bin(self.x_axis.curr_min_val) or xbin >= self.x_axis.val2bin(self.x_axis.curr_max_val) or \
+            ybin is None or ybin < self.y_axis.val2bin(self.y_axis.curr_min_val) or ybin >= self.y_axis.val2bin(self.y_axis.curr_max_val):
             self.remove_surface_mark()
             return
         
         self.place_surface_mark(int(xbin), int(ybin))
     
-    def place_surface_mark(self, xbin: int, ybin: int):
+    def place_surface_mark(self, xbin: int, ybin: int, even_if_same=False):
         if self.current_data is None:
             return
         
@@ -516,29 +566,51 @@ class Matrix3DPlot(object):
 
         zval = self.current_data[xbin, ybin]
 
-        if self.surface_mark.xbin == xbin and self.surface_mark.ybin == ybin and self.surface_mark.zval == zval:
+        if (self.surface_mark.xbin == xbin and self.surface_mark.ybin == ybin and self.surface_mark.zval == zval and not even_if_same):
             return
         
+        xminbin = int(np.ceil(self.x_axis.val2bin(self.x_axis.curr_min_val)))
+        xmaxbin = int(self.x_axis.val2bin(self.x_axis.curr_max_val))
+        yminbin = int(np.ceil(self.y_axis.val2bin(self.y_axis.curr_min_val)))
+        ymaxbin = int(self.y_axis.val2bin(self.y_axis.curr_max_val))
+
+        xbin = np.clip(xbin, xminbin, xmaxbin)
+        ybin = np.clip(ybin, yminbin, ymaxbin)
+        zval = self.current_data[xbin, ybin]
+
         self.surface_mark.xbin = xbin
         self.surface_mark.ybin = ybin
         self.surface_mark.zval = zval
 
-        # generate line data in the same way as wireframe, but only one row and one column
-        line_data = []
-        for xi in range(self.x_axis.num_bins):
-            line_data.append([float(xi), float(ybin), self.current_data[xi, ybin] + 0.1])
-        line_data.append([np.nan, np.nan, np.nan])  # separator
+        # Vectorized generation of line data (one row, separator, one column)
+        x_bins = self.x_axis.num_bins
+        y_bins = self.y_axis.num_bins
 
-        for yi in range(self.y_axis.num_bins):
-            line_data.append([float(xbin), float(yi), self.current_data[xbin, yi] + 0.1])
-        
-        line_data = np.asarray(line_data, dtype=np.float32)
+        # Row (vary x, fixed ybin)
+        x_idx = np.arange(x_bins, dtype=np.float32)
+        row_z = self.current_data[:, ybin].astype(np.float32) + 0.1
+        row = np.column_stack((x_idx,
+                       np.full(x_bins, ybin, dtype=np.float32),
+                       row_z))
+
+        # Column (vary y, fixed xbin)
+        y_idx = np.arange(y_bins, dtype=np.float32)
+        col_z = self.current_data[xbin, :].astype(np.float32) + 0.1
+        col = np.column_stack((np.full(y_bins, xbin, dtype=np.float32),
+                       y_idx,
+                       col_z))
+
+        # Separator
+        sep = np.array([[np.nan, np.nan, np.nan]], dtype=np.float32)
+
+        # Concatenate
+        line_data = np.vstack((row, sep, col))
 
         if self.surface_mark.line is not None:
             self.surface_mark.line.setData(pos=line_data)
             self.surface_mark.line.show()
         else:
-            self.surface_mark.line = gl.GLLinePlotItem(pos=line_data,
+            self.surface_mark.line = ClippedGLLinePlotItem(pos=line_data,
                                                        color=(0, 1, 0, 1),
                                                        width=2,
                                                        antialias=True,
@@ -547,7 +619,12 @@ class Matrix3DPlot(object):
 
             self.local_view.addItem(self.surface_mark.line)
             self.things_to_trans.append(self.surface_mark.line)
-        
+
+        self.surface_mark.line.set_clip_rect(self.x_axis.val2bin(self.x_axis.curr_min_val)-0.1,
+                                            self.x_axis.val2bin(self.x_axis.curr_max_val)+0.1,
+                                            self.y_axis.val2bin(self.y_axis.curr_min_val)-0.1,
+                                            self.y_axis.val2bin(self.y_axis.curr_max_val)+0.1)
+
         # label
         text = f"Range={self.x_axis.bin2val(xbin):.2f}m\nDoppler={self.y_axis.bin2val(ybin):.2f}Hz\nPower={zval:.2f}dB"
         if self.surface_mark.label is None:
@@ -658,6 +735,7 @@ class Matrix3DPlot(object):
         self.curr_cam_state = newstate
 
         self.scale_data_view()
+        self.fix_colorbar_labels_camera_state()
 
     def draw_wireframe(self):
         color = (0.6, 0.6, 0.6, 1)
@@ -688,7 +766,7 @@ class Matrix3DPlot(object):
 
         self.wireframe_data = np.asarray(points, dtype=np.float32)
 
-        self.wireframe_line = gl.GLLinePlotItem(pos=self.wireframe_data,
+        self.wireframe_line = ClippedGLLinePlotItem(pos=self.wireframe_data,
                                                 color=color,
                                                 width=width,
                                                 antialias=True,
@@ -718,8 +796,16 @@ class Matrix3DPlot(object):
                 break
             self.wireframe_data[idxs, 2] = self.current_data[xi, :] + 0.1
 
+        self.set_clip_wireframe()
         # Push updated positions
         self.wireframe_line.setData(pos=self.wireframe_data)
+    
+    def set_clip_wireframe(self):
+        if self.wireframe_line is not None:
+            self.wireframe_line.set_clip_rect(self.x_axis.val2bin(self.x_axis.curr_min_val)-0.1,
+                                             self.x_axis.val2bin(self.x_axis.curr_max_val)+0.1,
+                                             self.y_axis.val2bin(self.y_axis.curr_min_val)-0.1,
+                                             self.y_axis.val2bin(self.y_axis.curr_max_val)+0.1)
     
     def set_clip_rect_local(self, xmin, xmax, ymin, ymax):
         if self.data_view is not None:
@@ -833,6 +919,12 @@ class Matrix3DPlot(object):
         
         # Add axis labels
         self._add_axis_labels()
+
+        self._generate_ortho_y_label_trans()
+        self.fix_colorbar_labels_camera_state()
+        self._generate_ortho_z_label_trans()
+        self.fix_colorbar_labels_camera_state()
+        self._generate_ortho_x_label_trans() # this one doesn't change anything
         
         # Create surface plot item
         x = np.arange(x_bins)
@@ -885,19 +977,60 @@ class Matrix3DPlot(object):
         c = np.concatenate([c, [[[255]]*100]], axis=2)
         rgba = np.repeat(c, 10, axis=0)
         self.color_bar_glimg = gl.GLImageItem(data=rgba)
-        self.color_bar_glimg.scale(0.1, 0.1, 1)
+        self.color_bar_glimg.scale(0.1, 0.1, 0.1)
         self.color_bar_glimg.rotate(90, 1, 0, 0)
         # self.color_bar_glimg.rotate(90, 0, 0, 1)
         self.color_bar_glimg.translate(10, 10, -5)
         view.addItem(self.color_bar_glimg)
         self.colorbar_trans_dct[self.curr_cam_state] = self.color_bar_glimg.transform()
 
+    def _generate_ortho_z_label_trans(self):
+        """Call this after making the labels in default mode, and then reset them to default mode."""
+        for name, label in self.xaxis_labels.items():
+            label.rotate(-90, 0, 1, 0, local=True)
+            label.translate(-label.height, 0, 0, local=True)
+            self.axes_labels_trans_dct[name][CameraState.ORTHO_Z] = label.transform()
+
+        for name, label in self.yaxis_labels.items():
+            label.rotate(-90, 0, 1, 0, local=True)
+            label.translate(-label.height, 0, 0, local=True)
+            self.axes_labels_trans_dct[name][CameraState.ORTHO_Z] = label.transform()
+
+    def _generate_ortho_y_label_trans(self):
+        """Call this after making the labels in default mode, and then reset them to default mode."""
+        self.color_bar_glimg.rotate(90, 0, 1, 0, local=True)
+        self.colorbar_trans_dct[CameraState.ORTHO_Y] = self.color_bar_glimg.transform()
+
+        for name in ["y_min", "y_max", "y_mid"]:
+            self.axes_labels_trans_dct[name][CameraState.ORTHO_Y] = self.axes_labels_trans_dct[name][CameraState.DEFAULT]
+
+        for name, label in self.zaxis_labels.items():
+            label.rotate(-90, 1, 0, 0, local=True)
+            label.translate(0, label.width / 3, 0, local=True)
+            self.axes_labels_trans_dct[name][CameraState.ORTHO_Y] = label.transform()
+
+    def _generate_ortho_x_label_trans(self):
+        """Call this after making the labels in default mode, and then reset them to default mode."""
+        for name in ["z_min", "z_max", "z_mid"]:
+            self.axes_labels_trans_dct[name][CameraState.ORTHO_X] = self.axes_labels_trans_dct[name][CameraState.DEFAULT]
+
+        for name in ["x_min", "x_max", "x_mid"]:
+            self.axes_labels_trans_dct[name][CameraState.ORTHO_X] = self.axes_labels_trans_dct[name][CameraState.DEFAULT]
+
+        self.colorbar_trans_dct[CameraState.ORTHO_X] = self.colorbar_trans_dct[CameraState.DEFAULT]
 
     def fix_colorbar_labels_camera_state(self):
-        return  # Disabled for now, implement later
-        for label in self.zaxis_labels:
-            if self.curr_cam_state in self.axes_labels_trans_dct[label]:
-                label.setTransform(self.axes_labels_trans_dct[label][self.curr_cam_state])
+        for name, label in self.zaxis_labels.items():
+            if self.curr_cam_state in self.axes_labels_trans_dct[name]:
+                label.setTransform(self.axes_labels_trans_dct[name][self.curr_cam_state])
+
+        for name, label in self.yaxis_labels.items():
+            if self.curr_cam_state in self.axes_labels_trans_dct[name]:
+                label.setTransform(self.axes_labels_trans_dct[name][self.curr_cam_state])
+
+        for name, label in self.xaxis_labels.items():
+            if self.curr_cam_state in self.axes_labels_trans_dct[name]:
+                label.setTransform(self.axes_labels_trans_dct[name][self.curr_cam_state])
 
         if self.curr_cam_state in self.colorbar_trans_dct:
             self.color_bar_glimg.setTransform(self.colorbar_trans_dct[self.curr_cam_state])
@@ -906,19 +1039,8 @@ class Matrix3DPlot(object):
         view = self.local_view
 
         colorbar_width = 10
-        
+
         # Z axis labels on colorbar
-        z_mid = GLTextImage(f'{(self.z_axis.curr_max_val + self.z_axis.curr_min_val)/2:.1f} {self.z_axis.unit}')
-        z_mid.scale(0.05, 0.05, 0.05)
-        z_mid.rotate(90, 0, 1, 0)
-        z_mid.rotate(-90, 0, 0, 1)
-        z_mid.translateToCenter()
-        z_mid.translate(10, 10, 0)
-        z_mid.translate(0, colorbar_width + (z_mid.width/2)*1.3, 0, local=True)
-        view.addItem(z_mid)
-        self.zaxis_labels.append(z_mid)
-        self.axes_labels_trans_dct[z_mid] = {}
-        self.axes_labels_trans_dct[z_mid][CameraState.DEFAULT] = z_mid.transform()
 
         z_min_label = GLTextImage(f'{self.z_axis.curr_min_val:.1f} {self.z_axis.unit}')
         z_min_label.scale(0.05, 0.05, 0.05)
@@ -928,9 +1050,8 @@ class Matrix3DPlot(object):
         z_min_label.translate(10, 10, -5)
         z_min_label.translate(-z_min_label.height/2, colorbar_width + (z_min_label.width/2)*1.3, 0, local=True)
         view.addItem(z_min_label)
-        self.zaxis_labels.append(z_min_label)
-        self.axes_labels_trans_dct[z_min_label] = {}
-        self.axes_labels_trans_dct[z_min_label][CameraState.DEFAULT] = z_min_label.transform()
+        self.zaxis_labels["z_min"] = z_min_label
+        
 
         z_max_label = GLTextImage(f'{self.z_axis.curr_max_val:.1f} {self.z_axis.unit}')
         z_max_label.scale(0.05, 0.05, 0.05)
@@ -940,9 +1061,22 @@ class Matrix3DPlot(object):
         z_max_label.translate(10, 10, 5)
         z_max_label.translate(z_max_label.height/2, colorbar_width + (z_max_label.width/2)*1.3, 0, local=True)
         view.addItem(z_max_label)
-        self.zaxis_labels.append(z_max_label)
-        self.axes_labels_trans_dct[z_max_label] = {}
-        self.axes_labels_trans_dct[z_max_label][CameraState.DEFAULT] = z_max_label.transform()
+        self.zaxis_labels["z_max"] = z_max_label
+
+        z_mid = GLTextImage(f'{(self.z_axis.curr_max_val + self.z_axis.curr_min_val)/2:.1f} {self.z_axis.unit}')
+        z_mid.scale(0.05, 0.05, 0.05)
+        z_mid.rotate(90, 0, 1, 0)
+        z_mid.rotate(-90, 0, 0, 1)
+        z_mid.translateToCenter()
+        z_mid.translate(10, 10, 0)
+        z_mid.translate(0, colorbar_width + (z_mid.width/2)*1.3, 0, local=True)
+        view.addItem(z_mid)
+        self.zaxis_labels["z_mid"] = z_mid
+
+        if not self.initialized:
+            self.axes_labels_trans_dct["z_min"] = {CameraState.DEFAULT : z_min_label.transform()}
+            self.axes_labels_trans_dct["z_max"] = {CameraState.DEFAULT : z_max_label.transform()}
+            self.axes_labels_trans_dct["z_mid"] = {CameraState.DEFAULT : z_mid.transform()}
 
     def _add_axis_labels(self):
         """Add axis labels to the plot."""
@@ -956,9 +1090,7 @@ class Matrix3DPlot(object):
         x_min_label.translate(-10, 10, 5)
         x_min_label.translate(-x_min_label.height, 0, 0, local=True)
         view.addItem(x_min_label)
-        self.xaxis_labels.append(x_min_label)
-        self.axes_labels_trans_dct[x_min_label] = {}
-        self.axes_labels_trans_dct[x_min_label][CameraState.DEFAULT] = x_min_label.transform()
+        self.xaxis_labels["x_min"] = x_min_label
 
         x_max_label = GLTextImage(f'{self.x_axis.curr_max_val:.1f} {self.x_axis.unit}')
         x_max_label.scale(0.05, 0.05, 0.05)
@@ -967,9 +1099,8 @@ class Matrix3DPlot(object):
         x_max_label.translate(10, 10, 5)
         x_max_label.translate(-x_max_label.height, -x_max_label.width, 0, local=True)
         view.addItem(x_max_label)
-        self.xaxis_labels.append(x_max_label)
-        self.axes_labels_trans_dct[x_max_label] = {}
-        self.axes_labels_trans_dct[x_max_label][CameraState.DEFAULT] = x_max_label.transform()
+        self.xaxis_labels["x_max"] = x_max_label
+        
 
         x_mid_label = GLTextImage(f'{(self.x_axis.curr_min_val + self.x_axis.curr_max_val)/2:.1f} {self.x_axis.unit}')
         x_mid_label.scale(0.05, 0.05, 0.05)
@@ -978,9 +1109,7 @@ class Matrix3DPlot(object):
         x_mid_label.translate(0, 10, 5)
         x_mid_label.translate(-x_mid_label.height, -x_mid_label.width//2, 0, local=True)
         view.addItem(x_mid_label)
-        self.xaxis_labels.append(x_mid_label)
-        self.axes_labels_trans_dct[x_mid_label] = {}
-        self.axes_labels_trans_dct[x_mid_label][CameraState.DEFAULT] = x_mid_label.transform()
+        self.xaxis_labels["x_mid"] = x_mid_label
 
         # Y axis labels
         y_min_label = GLTextImage(f'{self.y_axis.curr_min_val:.1f} {self.y_axis.unit}')
@@ -989,9 +1118,7 @@ class Matrix3DPlot(object):
         y_min_label.translate(-10, -10, 5)
         y_min_label.translate(-y_min_label.height, 0, 0, local=True)
         view.addItem(y_min_label)
-        self.yaxis_labels.append(y_min_label)
-        self.axes_labels_trans_dct[y_min_label] = {}
-        self.axes_labels_trans_dct[y_min_label][CameraState.DEFAULT] = y_min_label.transform()
+        self.yaxis_labels["y_min"] = y_min_label
 
         y_max_label = GLTextImage(f'{self.y_axis.curr_max_val:.1f} {self.y_axis.unit}')
         y_max_label.scale(0.05, 0.05, 0.05)
@@ -999,9 +1126,7 @@ class Matrix3DPlot(object):
         y_max_label.translate(-10, 10, 5)
         y_max_label.translate(-y_max_label.height, -y_max_label.width, 0, local=True)
         view.addItem(y_max_label)
-        self.yaxis_labels.append(y_max_label)
-        self.axes_labels_trans_dct[y_max_label] = {}
-        self.axes_labels_trans_dct[y_max_label][CameraState.DEFAULT] = y_max_label.transform()
+        self.yaxis_labels["y_max"] = y_max_label
 
         y_center_label = GLTextImage(f'{(self.y_axis.curr_min_val + self.y_axis.curr_max_val)/2:.1f} {self.y_axis.unit}')
         y_center_label.scale(0.05, 0.05, 0.05)
@@ -1009,20 +1134,27 @@ class Matrix3DPlot(object):
         y_center_label.translate(-10, 0, 5)
         y_center_label.translate(-y_center_label.height, -y_center_label.width//2, 0, local=True)
         view.addItem(y_center_label)
-        self.yaxis_labels.append(y_center_label)
-        self.axes_labels_trans_dct[y_center_label] = {}
-        self.axes_labels_trans_dct[y_center_label][CameraState.DEFAULT] = y_center_label.transform()
+        self.yaxis_labels["y_mid"] = y_center_label
+
+        if not self.initialized:
+            self.axes_labels_trans_dct["x_min"] = {CameraState.DEFAULT : x_min_label.transform()}
+            self.axes_labels_trans_dct["x_max"] = {CameraState.DEFAULT : x_max_label.transform()}
+            self.axes_labels_trans_dct["x_mid"] = {CameraState.DEFAULT : x_mid_label.transform()}
+
+            self.axes_labels_trans_dct["y_min"] = {CameraState.DEFAULT : y_min_label.transform()}
+            self.axes_labels_trans_dct["y_max"] = {CameraState.DEFAULT : y_max_label.transform()}
+            self.axes_labels_trans_dct["y_mid"] = {CameraState.DEFAULT : y_center_label.transform()}
 
         self._add_colorbar_labels()
 
     def _remove_axis_labels(self):
-        for xlabel in self.xaxis_labels:
+        for xlabel in self.xaxis_labels.values():
             self.local_view.removeItem(xlabel)
-        
-        for ylabel in self.yaxis_labels:
+
+        for ylabel in self.yaxis_labels.values():
             self.local_view.removeItem(ylabel)
-        
-        for zlabel in self.zaxis_labels:
+
+        for zlabel in self.zaxis_labels.values():
             self.local_view.removeItem(zlabel)
         
         self.xaxis_labels.clear()
@@ -1080,6 +1212,10 @@ class Matrix3DPlot(object):
 
         self._remove_axis_labels()
         self._add_axis_labels()
+        self.fix_colorbar_labels_camera_state()
+        if self.surface_mark.label is not None:   
+            if self.surface_mark.label.isHidden() == False:
+                self.place_surface_mark(self.surface_mark.xbin, self.surface_mark.ybin, even_if_same=True)
         self.scale_data_view()
     
     def change_xlims(self, xmin, xmax):
@@ -1088,6 +1224,10 @@ class Matrix3DPlot(object):
 
         self._remove_axis_labels()
         self._add_axis_labels()
+        self.fix_colorbar_labels_camera_state()
+        if self.surface_mark.label is not None:   
+            if self.surface_mark.label.isHidden() == False:
+                self.place_surface_mark(self.surface_mark.xbin, self.surface_mark.ybin, even_if_same=True)
         self.scale_data_view()
     
     def change_zlims(self, zmin, zmax):
@@ -1096,9 +1236,11 @@ class Matrix3DPlot(object):
 
         self._remove_axis_labels()
         self._add_axis_labels()
+        self.fix_colorbar_labels_camera_state()
         self.scale_data_view()
 
-        self.update_data(self.data_view._z if self.data_view is not None else np.zeros((self.y_axis.num_bins, self.x_axis.num_bins)))
+        if self.current_data is not None:
+            self.update_data(self.non_clipped_curr_data)
 
     def update_data(self, z_data: np.ndarray):
         """
@@ -1109,6 +1251,8 @@ class Matrix3DPlot(object):
         """
         if not self.initialized:
             self.initialize_plot()
+
+        self.non_clipped_curr_data = z_data
 
         self.current_data = np.maximum(z_data, self.z_axis.curr_min_val)
 
