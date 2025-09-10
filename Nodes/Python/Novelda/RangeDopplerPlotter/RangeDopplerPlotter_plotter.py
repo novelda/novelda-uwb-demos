@@ -225,7 +225,8 @@ class RangeDopplerPlotter:
         self.frame_lineedit.returnPressed.connect(self.frame_edited) 
 
         screen_size = self.app.primaryScreen().size()
-        self.mainwin.resize(int(screen_size.width()*0.9), int(screen_size.height()*0.9))
+        best_ar = 16/10
+        self.mainwin.resize(int(screen_size.height()*best_ar), int(screen_size.height()*0.9))
         self.mainwin.move(0, 0)
         self.mainwin.show()
 
