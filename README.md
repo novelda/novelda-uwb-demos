@@ -37,8 +37,8 @@ Currently the demos are supported on the following OS'es:
 | Mac osx 64-bit x86_64 | N/A     | Coming |
 | Mac osx 64-bit arm64  | N/A     | Coming |
 
-Click the link for the installation description on [Windows](./InstallationDescription_Windows.md) 
-or [Linux](./InstallationDescription_Linux.md) necessary to run the demos. 
+Click the link for the installation description on [Windows](./InstallationDescription_Windows.md),
+[Mac_x86_64](./InstallationDescription_Mac_x86_64.md) or [Linux](./InstallationDescription_Linux.md) necessary to run the demos. 
 
 ## X7 Demos ##
 
