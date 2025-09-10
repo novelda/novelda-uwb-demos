@@ -65,7 +65,8 @@ then do:
 We have experienced issues when doing pip install step on the requirements.txt. Specfically it fails
 on the **PyOpenGL-accelerate** package.
 What did work for us if you find yourself in the same predicament, is to manually pip install every package in the 
-**requirements.txt**
+**requirements.txt**. There is also a suggestion found on the internet to install **numpy** before the 
+**PyOpenGL-accelerate** package.
 
 
 That's it! You are now ready for having fun with your X7F202 radar module.
