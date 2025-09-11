@@ -91,6 +91,12 @@ The Range-Doppler processing can be configured with the following available para
 | FFTSize | int32 | `"64"` | Length of the FFT for Range-Doppler calculation, allowing oversampling in the FFT. `FFTSize` needs to be a power of 2, with 16 being the lowest and 4096 being the highest. In addition `FFTSize` needs to be greater than or equal to `NumFramesInPD`. |
 | enableDCRemoval | bool | `"true"` | Enable/disable removal of static objects through a weighted arithmetic mean per range bin of the frame buffer. If `false` all static reflections in the scene will be visible, making detection of moving targets harder. |
 
+Please note that depending on the configured FPS and Range-Doppler parameters, the host might not be able to process data in real time. There is some buffering in the X7 MCU, but this will eventually fill up, leading to frame drops. If frame drops occur, this will lead to a program termination and the following error message will display:
+```
+PySignalFlow.FlowProcessError: input trxmask not in expected sequence
+```
+To avoid this, reduce the FPS and/or update rate of the Range-Doppler to reduce the processing load on the host.
+
 #### Other parameters
 
 ```
