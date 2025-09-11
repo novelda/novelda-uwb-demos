@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 import numpy as np
 from dataclasses import dataclass
+from pathlib import Path
 
 import pyqtgraph as pg
 
@@ -10,7 +11,7 @@ from pyqtgraph.Qt.QtWidgets import (
     QMainWindow, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QLineEdit,
     QPushButton, QApplication, QCheckBox
     )
-from pyqtgraph.Qt.QtGui import QDoubleValidator
+from pyqtgraph.Qt.QtGui import QDoubleValidator, QIcon, QImage, QPalette, QColor
 import pyqtgraph.Qt.QtCore as QtCore
 
 from RangeDopplerPlotter.surface_plot_widget import Matrix3DPlot, AxisConfig, CameraState
@@ -55,6 +56,11 @@ class PlotMainWin(QMainWindow):
         self.on_close_func = on_close_func
         super().__init__()
 
+        icon_fp = Path(__file__).resolve().parent / "Images" / "cropped-NOVELDA-icon-192x192.png"
+        icon = QIcon(str(icon_fp))
+        self.setWindowIcon(icon)
+        
+
     def closeEvent(self, event):
         self.on_close_func()
         event.accept()
@@ -87,6 +93,7 @@ class RangeDopplerPlotter:
 
         self.first_setup_dict = None
         self.first_timestamp = None
+        self.is_live = True
 
         # timestamp received : RDRawPlotData
         self.rd_plot_data_buffer: list[RDRawPlotData] = []
@@ -97,6 +104,9 @@ class RangeDopplerPlotter:
         self.power_axis = AxisConfig("Power", "dB", -100, 0, 100)
         from PySide6.QtCore import QLocale
         QLocale.setDefault(QLocale(QLocale.English, QLocale.UnitedStates))
+
+        logo_img_fp = Path(__file__).resolve().parent / "Images" / "Novelda_logo_hvit_150dpi.png"
+        self.logo_img = QImage(str(logo_img_fp))
 
     def make_double_lineedit(self, in_box, first_label, second_label, width=100):
         line_edit_w = QWidget(self.mainwidget)
@@ -122,6 +132,25 @@ class RangeDopplerPlotter:
             self.app = QApplication([])
         if self.mainwin is not None:
             return
+        
+        self.app.setStyle('Fusion')
+        pal = QPalette()
+        base_bg = QColor("#3A3E44")   # window/background
+        alt_bg  = QColor("#2A2D30")   # alternate
+        text_fg = QColor('#E6E6E6')   # text/fg
+
+        pal.setColor(QPalette.Window, base_bg)
+        pal.setColor(QPalette.Base, base_bg)
+        pal.setColor(QPalette.AlternateBase, alt_bg)
+        pal.setColor(QPalette.Button, base_bg)
+        pal.setColor(QPalette.ToolTipBase, base_bg)
+
+        pal.setColor(QPalette.WindowText, text_fg)
+        pal.setColor(QPalette.Text, text_fg)
+        pal.setColor(QPalette.ButtonText, text_fg)
+        pal.setColor(QPalette.ToolTipText, text_fg)
+
+        self.app.setPalette(pal)
 
         self.mainwin = PlotMainWin(self.exit)
         self.mainwin.setWindowTitle("Range Doppler Plotter")
@@ -144,20 +173,21 @@ class RangeDopplerPlotter:
         controls_first_hbox = QHBoxLayout(controls_first_w)
         controls_first_hbox.setContentsMargins(0, 0, 0, 0)
 
-        controls_first_hbox.addStretch(20)
-
         # info label
         self.infolabel = QLabel("", parent=self.mainwidget)
         self.infolabel.setStyleSheet(f"""
             QLabel {{
-                color: #74787d;
+                color: #b1b7c0;
                 font-size: 10pt;
             }}
         """)
 
+        self.live_or_playback_label = QLabel("", parent=self.mainwidget)
+        self.live_or_playback_label.setContentsMargins(1, 5, 1, 5)
+
         self.time_label = QLabel("", parent=self.mainwidget)
         self.time_label.setStyleSheet(self.infolabel.styleSheet())
-        self.time_label.setContentsMargins(1, 10, 1, 5)
+        self.time_label.setContentsMargins(1, 5, 1, 5)
 
         self.hotkey_label = QLabel(text=("Space: play/pause"
                                    "\nLeft/Right Arrow: change current RD plot"
@@ -170,9 +200,31 @@ class RangeDopplerPlotter:
         self.hotkey_label.setStyleSheet(self.infolabel.styleSheet())
         self.hotkey_label.setContentsMargins(1, 10, 1, 5)
 
+        self.logo_label = QLabel()
+        self.logo_label.setPixmap(pg.QtGui.QPixmap.fromImage(self.logo_img).scaledToWidth(100, QtCore.Qt.SmoothTransformation))
+        img_ar = self.logo_img.width() / self.logo_img.height()
+        # self.logo_label.setMaximumWidth(100)
+        # self.logo_label.setMaximumHeight(int(100/img_ar))
+
+        controls_first_hbox.addStretch(2)
+        controls_first_hbox.addWidget(self.logo_label, 1, alignment=QtCore.Qt.AlignLeft | QtCore.Qt.AlignCenter)
+        controls_first_hbox.addStretch(20)
         controls_first_hbox.addWidget(self.hotkey_label, 1, alignment=QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         controls_first_hbox.addStretch(2)
-        controls_first_hbox.addWidget(self.infolabel, 1, alignment=QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+
+        # vert box for live/playback label, and info label below
+
+        live_play_w = QWidget(self.mainwidget)
+        live_play_vbox = QVBoxLayout(live_play_w)
+        controls_first_hbox.addWidget(live_play_w, 1, alignment=QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+
+        live_play_vbox.setContentsMargins(0, 0, 0, 0)
+        live_play_vbox.addWidget(self.live_or_playback_label, 1)
+        live_play_vbox.addWidget(self.infolabel, 1)
+        live_play_vbox.addStretch(5)
+
+        # -----------------
+
         controls_first_hbox.addStretch(1)
 
         # left controls, xy min max
@@ -297,13 +349,26 @@ class RangeDopplerPlotter:
         num_frames_in_pd = self.first_setup_dict["num_frames_in_pd"]
         fps = self.first_setup_dict["fps"]
         enable_dc_removal = self.first_setup_dict["enable_dc_removal"]
+        is_live = self.first_setup_dict.get("is_live", True)
         self.infolabel.setText(
             (f"FPS: {fps}"
             f"\nRangeDoppler integration time: {num_frames_in_pd/fps:.1f} s"
             f"\nRangeDoppler update rate: {frames_btw_pd/fps:.1f} s"
             f"\nEnable DC Removal: {enable_dc_removal}")
         )
-        self.infolabel.setContentsMargins(1, 10, 1, 5)
+
+        liveplay_color = "#82f17e" if is_live else "#369ee4"
+        liveplay_text = "Live" if is_live else "Playback"
+
+        self.live_or_playback_label.setStyleSheet(f"""
+        QLabel {{
+            color: {liveplay_color};
+            font-size: 14pt;
+        }}
+        """)
+        self.live_or_playback_label.setText(liveplay_text)
+            
+        
 
     def set_label_curr_frame(self):
         if not self.paused:

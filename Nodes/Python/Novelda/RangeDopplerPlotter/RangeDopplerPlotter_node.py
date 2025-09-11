@@ -55,7 +55,8 @@ class RangeDopplerPlotter:
                 self.frames_between_pd = int(np.array(curr_sec["FramesBetweenPD"])[0])
             if "enableDCRemoval" in curr_sec:
                 self.enable_dc_removal = np.array(curr_sec["enableDCRemoval"], dtype=bool)[0]
-
+            if "IsLive" in curr_sec:
+                self.is_live = np.array(curr_sec["IsLive"], dtype=bool)[0]
     def buildup(self):
 
         MAX_RANGE_BINS = 192
@@ -96,7 +97,8 @@ class RangeDopplerPlotter:
             "num_frames_in_pd" : self.num_frames_in_pd,
             "frames_between_pd" : self.frames_between_pd,
             "num_saved_frames" : self.num_saved_frames,
-            "enable_dc_removal" : self.enable_dc_removal
+            "enable_dc_removal" : self.enable_dc_removal,
+            "is_live" : self.is_live,
         }
 
         self.send_data(param_dict)
