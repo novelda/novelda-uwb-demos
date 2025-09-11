@@ -1,10 +1,6 @@
 # X7 RangeDoppler raw channels demo
 
-This document describes the X7 RangeDoppler raw channels demo and how to configure it. In addition the concept of Range-Doppler processing is briefly explained. To run the demo just run the 'runX7RangeDopplerRaw.py' file with python.
-
-```
-python <path-to-runX7RangeDopplerRaw.py>
-```
+This document describes the X7 RangeDoppler raw channels demo and how to configure it. In addition the concept of Range-Doppler processing is briefly explained.
 
 ## Description of the X7 RangeDoppler raw channels demo
 
@@ -15,8 +11,8 @@ The X7 RangeDoppler raw channels demo uses the Novelda X7 RadarDirect radar appl
 The available demo configuration parameters can be found in [rd_raw_setup.json](./rd_raw_setup.json). Some general formatting rules apply for specifying parameters in the setup file:
 - All algorithm parameters (`RadarSource` and `RangeDopplerRawChannels`) must be written as strings, i.e. encapsulated by `""`.
 - Parameters have assigned types, and the provided default settings indicate the type through formatting of the parameter strings. A type mismatch will cause the parameters to not take effect.
-- Floating point values are written with a dot, e.g. `"FPS" : "32.0"`
-- Signed 32-bit integers are written without any postfix, e.g. `"IterationsPerFrame" : "30"`
+- Floating point values are written with a dot, e.g. `"FPS" : "100.0"`
+- Signed 32-bit integers are written without any postfix, e.g. `"IterationsPerFrame" : "6"`
 - Unsigned 16-bit integers are written with a `u16` postfix, e.g. `"RxMaskSequence" : "{3u16, 3u16}"`
 - File path strings must be separated with `\\` or `/` and not a single `\`.
 - Parameter names (keys) should not be changed from the provided defaults as they will cease to take effect.
@@ -70,14 +66,13 @@ The table below shows the available X7 radar parameters, their type and an examp
 
 | Parameter | Type | Example |
 | -------- | -------- | -------- |
-| FPS | float | `"32.0"` |
+| FPS | float | `"100.0"` |
 | PulsePeriod | int32 | `"12"` |
 | MframesPerPulse | int32 | `"6"` |
 | PulsesPerIteration | int32 | `"35"` |
-| IterationsPerFrame | int32 | `"30"` |
+| IterationsPerFrame | int32 | `"6"` |
 | TxPower | int32 | `"3"` |
-| InterleavedFrames | int32 | `"0"` |
-| Ilo5xMode | int32 | `"1"` |
+| InterleavedFrames | int32 | `"5"` |
 | TxChannelSequence | uint16 | `"{0u16, 1u16}"` |
 | RxMaskSequence | uint16 | `"{3u16, 3u16}"` |
 
@@ -87,8 +82,8 @@ The Range-Doppler processing can be configured with the following available para
 
 | Parameter | Type | Example | Description |
 | -------- | -------- | -------- | -------- |
-| NumFramesInPD | int32 | `"64"` | Number of radar frames to buffer and process for each Range-Doppler calculation. The observation time can be calculated as `Tobs = NumFramesInPD/FPS`. |
-| FramesBetweenPD | int32 | `"32"` | Number of radar frames between each new Range-Doppler update. The time between each Range-Doppler can be calculated as `TimeBetweenPD = FramesBetweenPD/FPS`. |
+| NumFramesInPD | int32 | `"50"` | Number of radar frames to buffer and process for each Range-Doppler calculation. The observation time can be calculated as `Tobs = NumFramesInPD/FPS`. |
+| FramesBetweenPD | int32 | `"25"` | Number of radar frames between each new Range-Doppler update. The time between each Range-Doppler can be calculated as `TimeBetweenPD = FramesBetweenPD/FPS`. |
 | FFTSize | int32 | `"64"` | Length of the FFT for Range-Doppler calculation, allowing oversampling in the FFT. `FFTSize` needs to be a power of 2, with 16 being the lowest and 4096 being the highest. In addition `FFTSize` needs to be greater than or equal to `NumFramesInPD`. |
 | enableDCRemoval | bool | `"true"` | Enable/disable removal of static objects through a weighted arithmetic mean per range bin of the frame buffer. If `false` all static reflections in the scene will be visible, making detection of moving targets harder. |
 
@@ -96,11 +91,14 @@ The Range-Doppler processing can be configured with the following available para
 
 ```
 "PlotRangeDopplerRawChannels": {
-    "MaxBufferedFrames" : "-1"
+    "MaxBufferedFrames" : "-1",
+    "ZLimVec" : "{-60.0, 20.0}"
 }
 ```
 
-The visualization buffers Range-Doppler maps in memory, allowing stepping backwards/forwards for closer evaluation. `MaxBufferedFrames` specifies the maximum number of frames (Range-Doppler maps) to hold in memory. The actual value will be different in the backend. If this is set to a negative value, then `MaxBufferedFrames` will be 100k. With the default setup of 96 range bins and `FFTSize = 64` each Range-Doppler map is about 95kB.
+The visualization buffers Range-Doppler maps in memory, allowing stepping backwards/forwards for closer evaluation. `MaxBufferedFrames` specifies the maximum number of frames (Range-Doppler maps) to hold in memory. The actual value will be different in the backend. If this is set to a negative value, then `MaxBufferedFrames` will be 100k. With the default setup of 96 range bins and `FFTSize = 64`, each Range-Doppler map is about 95kB.
+
+`ZLimVec` specifies the initial Z-limits (in dB) in the visualization. This can be changed interactively while running the demo.
 
 ## Range-Doppler processing
 
