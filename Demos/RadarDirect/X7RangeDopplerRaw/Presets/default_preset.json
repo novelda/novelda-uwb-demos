@@ -1,7 +1,7 @@
 {
-    "IsLive" : false,
-    "BA22FirmwarePath" : "C:\\Novelda\\SignalFlow_x64-windows\\firmware\\X7_Application_BA22_IC004_RadarDirect_config_6.11.5.app",
-    "PlaybackFile" : "C:/Users/Dorde/Downloads/x7source_signal_frame_recording_20231024T112058Z.sig",
+    "IsLive" : true,
+    "BA22FirmwarePath" : "",
+    "PlaybackFile" : "",
 
     "DoRecording" : false,
     "RecordingDirectory" : "",
