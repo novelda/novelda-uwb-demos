@@ -108,15 +108,21 @@ To avoid this, reduce the FPS and/or update rate of the Range-Doppler to reduce 
 #### Other parameters
 
 ```
-"PlotRangeDopplerRawChannels": {
+"RDPlottingParameters": {
     "MaxBufferedFrames" : "-1",
     "ZLimVec" : "{-60.0, 20.0}"
+    "XLimVec" : "{}",
+    "YLimVec" : "{}"
 }
 ```
 
 The visualization buffers Range-Doppler maps in memory, allowing stepping backwards/forwards for closer evaluation. `MaxBufferedFrames` specifies the maximum number of frames (Range-Doppler maps) to hold in memory. The actual value will be different in the backend. If this is set to a negative value, then `MaxBufferedFrames` will be 100k. With the default setup of 96 range bins and `FFTSize = 64`, each Range-Doppler map is about 95kB.
 
-`ZLimVec` specifies the initial Z-limits (in dB) in the visualization. This can be changed interactively while running the demo.
+`ZLimVec` specifies the initial Z-limits (in dB) in the visualization.
+`XLimVec` specifies the initial range limits (in meters)
+`YLimVec` specifies the initial Doppler limits (in hertz)
+
+All of these can be changed interactively while running the demo. If any of these limit vectors are omitted or left empty "{}", then the default values will be used.
 
 ## Range-Doppler processing
 

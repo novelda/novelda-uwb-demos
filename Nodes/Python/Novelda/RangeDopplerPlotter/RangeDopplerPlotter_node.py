@@ -18,6 +18,8 @@ ARRAY_SEMANTIC_RANGEDOPPLER_POWER_AGGREGATED_RAWCHANNELS = "rangedoppler_power_a
 ARRAY_SEMANTIC_RANGEDOPPLER_IQ_AGGREGATED_RAWCHANNELS = "rangedoppler_iq_aggregated_rawchannels"
 ARRAY_SEMANTIC_RADAR_TRXMASK = "radar_trx_mask"
 
+DEFAULT_START_RANGE = 0.4  # meters
+
 class RangeDopplerPlotter:
     def __init__(self, *_):
         self.initialized = False
@@ -28,6 +30,9 @@ class RangeDopplerPlotter:
         self.frames_between_pd = 0
         self.fps = 1
         self.enable_dc_removal = False
+
+        self.z_lim_vec = np.array([-70.0, 10.0])
+        self.num_saved_frames = -1  # all
 
     def set_parameters(self, context, params, sections):
         for section in sections:
@@ -40,7 +45,9 @@ class RangeDopplerPlotter:
             if "FFTSize" in curr_sec:
                 self.fft_size = int(np.array(curr_sec["FFTSize"])[0])
             if "ZLimVec" in curr_sec:
-                self.z_lim_vec = np.array(curr_sec["ZLimVec"])
+                newzlim = np.array(curr_sec["ZLimVec"])
+                if newzlim.size == 2:
+                    self.z_lim_vec = newzlim
             if "RangeOffset" in curr_sec:
                 self.range_offset = float(np.array(curr_sec["RangeOffset"])[0])
             if "BinLength" in curr_sec:
@@ -57,6 +64,15 @@ class RangeDopplerPlotter:
                 self.enable_dc_removal = np.array(curr_sec["enableDCRemoval"], dtype=bool)[0]
             if "IsLive" in curr_sec:
                 self.is_live = np.array(curr_sec["IsLive"], dtype=bool)[0]
+            if "XLimVec" in curr_sec:
+                newxlim = np.array(curr_sec["XLimVec"])
+                if newxlim.size == 2:
+                    self.x_lim_vec = newxlim
+            if "YLimVec" in curr_sec:
+                newylim = np.array(curr_sec["YLimVec"])
+                if newylim.size == 2:
+                    self.y_lim_vec = newylim
+                
     def buildup(self):
 
         MAX_RANGE_BINS = 192
@@ -90,7 +106,6 @@ class RangeDopplerPlotter:
         param_dict = {
             "fps" : self.fps,
             "fft_size" : self.fft_size,
-            "z_lim_vec" : self.z_lim_vec,
             "range_offset" : self.range_offset,
             "bin_length" : self.bin_length,
             "convert2pwr" : self.convert2pwr,
@@ -99,7 +114,20 @@ class RangeDopplerPlotter:
             "num_saved_frames" : self.num_saved_frames,
             "enable_dc_removal" : self.enable_dc_removal,
             "is_live" : self.is_live,
+            "default_start_range" : DEFAULT_START_RANGE
         }
+
+        if hasattr(self, "z_lim_vec"):
+            if self.z_lim_vec.size == 2:
+                param_dict["z_lim_vec"] = self.z_lim_vec
+
+        if hasattr(self, "x_lim_vec"):
+            if self.x_lim_vec.size == 2:
+                param_dict["x_lim_vec"] = self.x_lim_vec
+
+        if hasattr(self, "y_lim_vec"):
+            if self.y_lim_vec.size == 2:
+                param_dict["y_lim_vec"] = self.y_lim_vec
 
         self.send_data(param_dict)
 
