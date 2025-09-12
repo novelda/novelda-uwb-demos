@@ -23,7 +23,7 @@ def run_with_setup(setup_json: str):
     islive = stp["IsLive"]
 
     pm = ParamMaker()
-    pm["PlotRangeDopplerRawChannels"]["IsLive"] = "true" if islive else "false"
+    pm["RDPlottingParameters"]["IsLive"] = "true" if islive else "false"
 
     ba22 = stp["BA22FirmwarePath"]
     filesource_in = stp["PlaybackFile"]

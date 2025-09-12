@@ -8,26 +8,28 @@
     "RecordingPrefix" : "rec_",
 
     "RangeDopplerRawChannels" : {
-        "NumFramesInPD" : "50",
+        "NumFramesInPD" : "250",
         "FramesBetweenPD" : "25",
-        "FFTSize" : "64",
+        "FFTSize" : "512",
         "enableDCRemoval" :"true"
     },
 
     "RadarSource" : {
-        "FPS" : "100.0",
-        "PulsePeriod" : "12",
-        "MframesPerPulse" : "6",
+        "FPS" : "500.0",
+        "PulsePeriod" : "8",
+        "MframesPerPulse" : "7",
         "PulsesPerIteration" : "35",
-        "IterationsPerFrame" : "6",
+        "IterationsPerFrame" : "74",
         "TxPower" : "3",
         "InterleavedFrames" : "5",
+        "Ilo5xMode" : "1",
         "TxChannelSequence" : "{0u16, 1u16}",
         "RxMaskSequence" : "{3u16, 3u16}"
     },
 
        "RDPlottingParameters": {
         "MaxBufferedFrames" : "-1",
+        "XLimVec" : "{0.4, 6.85}",
         "ZLimVec" : "{-60.0, 20.0}"
     }
 }

@@ -56,7 +56,9 @@ class PlotMainWin(QMainWindow):
         self.on_close_func = on_close_func
         super().__init__()
 
-        icon_fp = Path(__file__).resolve().parent / "Images" / "cropped-NOVELDA-icon-192x192.png"
+        icon_fp = Path(__file__).resolve().parent.parent.parent.parent.parent / "Demos" \
+            / "Resources" / "Images" / "cropped-NOVELDA-icon-192x192.png"
+
         icon = QIcon(str(icon_fp))
         self.setWindowIcon(icon)
         
@@ -95,6 +97,8 @@ class RangeDopplerPlotter:
         self.first_timestamp = None
         self.is_live = True
 
+        self.did_first_lims_change = False
+
         # timestamp received : RDRawPlotData
         self.rd_plot_data_buffer: list[RDRawPlotData] = []
         self.plot_dict: dict[tuple[int, int], Matrix3DPlot] = {}
@@ -105,7 +109,8 @@ class RangeDopplerPlotter:
         from PySide6.QtCore import QLocale
         QLocale.setDefault(QLocale(QLocale.English, QLocale.UnitedStates))
 
-        logo_img_fp = Path(__file__).resolve().parent / "Images" / "Novelda_logo_hvit_150dpi.png"
+        logo_img_fp = Path(__file__).resolve().parent.parent.parent.parent.parent / "Demos" \
+            / "Resources" / "Images" / "Novelda_logo_hvit_150dpi.png"
         self.logo_img = QImage(str(logo_img_fp))
 
     def make_double_lineedit(self, in_box, first_label, second_label, width=100):
@@ -559,6 +564,9 @@ class RangeDopplerPlotter:
         self.y_lim_vec = np.array([-self.rd_setup.num_bins_doppler / 2, self.rd_setup.num_bins_doppler / 2 - 1]) * (self.rd_setup.fps / self.rd_setup.fft_size)
         self.z_lim_vec = self.rd_setup.zlim_vec
 
+        if not self.z_lim_vec.size == 2:
+            self.z_lim_vec = np.array([-70.0, 10.0])
+
         self.range_axis = AxisConfig("Range", "m", self.x_lim_vec[0], self.x_lim_vec[1], num_bins=self.rd_setup.num_bins_range)
         self.doppler_axis = AxisConfig("Doppler", "Hz", self.y_lim_vec[0], self.y_lim_vec[1], num_bins=self.rd_setup.num_bins_doppler)
         self.power_axis = AxisConfig("Power", "dB", self.z_lim_vec[0], self.z_lim_vec[1], num_bins=10)
@@ -588,7 +596,22 @@ class RangeDopplerPlotter:
 
             # Update the plot with the new data
             plot.update_data(data_slice)
-        
+
+        if not self.did_first_lims_change:
+            self.did_first_lims_change = True
+
+            if "default_start_range" in self.first_setup_dict:
+                self.rangemin_lineedit.setText(f"{self.first_setup_dict['default_start_range']:.2f}")
+
+            if "x_lim_vec" in self.first_setup_dict:
+                self.rangemin_lineedit.setText(f"{self.first_setup_dict['x_lim_vec'][0]:.2f}")
+                self.rangemax_lineedit.setText(f"{self.first_setup_dict['x_lim_vec'][1]:.2f}")
+            if "y_lim_vec" in self.first_setup_dict:
+                self.dopplermin_lineedit.setText(f"{self.first_setup_dict['y_lim_vec'][0]:.2f}")
+                self.dopplermax_lineedit.setText(f"{self.first_setup_dict['y_lim_vec'][1]:.2f}")
+            
+            self.limits_edited()
+
         self.set_label_curr_frame()
         self.set_label_time()
 

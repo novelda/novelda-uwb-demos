@@ -1,1 +1,3 @@
 sharedmem_reg.txt
+.demos/
+__pycache__/
