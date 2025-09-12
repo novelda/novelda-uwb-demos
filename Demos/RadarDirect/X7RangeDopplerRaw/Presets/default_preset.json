@@ -19,16 +19,15 @@
         "PulsePeriod" : "12",
         "MframesPerPulse" : "6",
         "PulsesPerIteration" : "35",
-        "IterationsPerFrame" : "30",
+        "IterationsPerFrame" : "6",
         "TxPower" : "3",
-        "InterleavedFrames" : "0",
-        "Ilo5xMode" : "1",
+        "InterleavedFrames" : "5",
         "TxChannelSequence" : "{0u16, 1u16}",
         "RxMaskSequence" : "{3u16, 3u16}"
     },
 
        "PlotRangeDopplerRawChannels": {
         "MaxBufferedFrames" : "-1",
-        "ZLimVec" : "{-60.0, -10.0}"
+        "ZLimVec" : "{-60.0, 20.0}"
     }
 }
