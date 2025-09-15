@@ -30,12 +30,12 @@ So let us go ahead and get those demos up and running.
 
 Currently the demos are supported on the following OS'es:
 
- OS                    | Since SDK version | Status    |
-|-----------------------|-------------------|-----------|
-| Windows 64-bit x86_64 | 0.6               | Available |
-| Linux 64-bit x86_64   | 0.6               | Available |
-| Mac osx 64-bit x86_64 | 0.6               | Available |
-| Mac osx 64-bit arm64  | N/A               | Coming    |
+ OS                    | Since SDK version | Status             |
+|-----------------------|-------------------|--------------------|
+| Windows 64-bit x86_64 | 0.6               | :white_check_mark: |
+| Linux 64-bit x86_64   | 0.6               | :white_check_mark: |
+| Mac osx 64-bit x86_64 | 0.6               | :white_check_mark: |
+| Mac osx 64-bit arm64  | N/A               | :x:                |
 
 Click the link for the installation description on [Windows](./InstallationDescription_Windows.md),
 [Mac_x86_64](./InstallationDescription_Mac_x86_64.md) or [Linux](./InstallationDescription_Linux.md) necessary to run the demos. 
@@ -46,11 +46,13 @@ The demos can be used starting with the official 0.6 SDK release.
 
 Here is the list of demos currently supported with python 3.10:
 
-| Demo                                                                                   | Description                                         | Status    |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------|-----------|
-| [X7RangeDopplerRaw](./Demos/RadarDirect/X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md) | RangeDoppler visualization of the Tx/Rx rawchannels | Available |
-| X7BasebandRecorder                                                                     | Baseband recorder for the X7-devkit                 | Coming    |
-| X7BasebandPlotter                                                                      | Live/Playback plotting of x7 baseband data          | Coming    |
-| ULPP_Presence1D                                                                        | Live/Playback plotting of x7 presence1d data        | Coming    |
-| ULPP_Presence2D                                                                        | Live/Playback plotting of x7 presence2d data        | Coming    |
+| Demo                                                                                   | Description                                         | Status             |
+|----------------------------------------------------------------------------------------|-----------------------------------------------------|--------------------|
+| [X7RangeDopplerRaw](./Demos/RadarDirect/X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md) | RangeDoppler visualization of the Tx/Rx rawchannels | :white_check_mark: |
+| [PyX7Configuration_GUI](./Demos/PyX7ConfigGUI/README.md)                               | GUI tool for pyx7configuration                      | :white_check_mark: |
+| RunRadarDirect                                                                         | Run custom python scripts with RadarDirect          | :x:                |
+| X7BasebandRecorder                                                                     | Baseband recorder for the X7-devkit                 | :x:                |
+| X7BasebandPlotter                                                                      | Live/Playback plotting of x7 baseband data          | :x:                |
+| ULPP_Presence1D                                                                        | Live/Playback plotting of x7 presence1d data        | :x:                |
+| ULPP_Presence2D                                                                        | Live/Playback plotting of x7 presence2d data        | :x:                |
 
