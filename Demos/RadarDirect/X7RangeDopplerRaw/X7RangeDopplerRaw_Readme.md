@@ -72,7 +72,7 @@ Below is an example of the available high level demo parameters, and examples on
 
 #### X7 radar parameters
 
-Configuration of the low-level X7 radar parameters requires deep understanding of the chip, and it's recommended to use provided configuration tools (e.g. `pyx7configuration`) to help set up the system correctly. For a description of each of the X7 radar parameters, please see the pyx7configuration documentation provided in the Novelda X7 SDK (`<path-to-sdk>/pyx7configuration/Docs`).
+Configuration of the low-level X7 radar parameters requires deep understanding of the chip, and it's recommended to use provided configuration tools (e.g. `pyx7configuration`) to help set up the system correctly. For a description of each of the X7 radar parameters, please see the pyx7configuration documentation provided on the [Novelda X7 developer website](https://dev.novelda.com/X7/_examples/x7_fundamentals/pyx7configuration_0.6.html) (requires access).
 
 The table below shows the available X7 radar parameters, their type and an example on how to set them in the configuration file. Note that these only take effect when running live, and not in playback mode.
 
