@@ -1,0 +1,16 @@
+{
+    "X7UserConfiguration" : {
+        "FPS" : "4.0",
+        "DutyCycle" : "0.001",
+        "AntennaGain" : "2.60",
+        "PulsePeriod" : "0",
+        "MaxRange" : "2.0"
+    },
+
+    "X7TxRxConfiguration" : {
+        "NumberOfChips" : "1",
+        "TxChannelSequence" : "[0]",
+        "RxMaskSequence" : "[1]"
+    }
+    
+}
