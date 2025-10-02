@@ -115,6 +115,8 @@ class SharedMemSender:
         reg = self.load_registry()
         removed = []
         for name, ts in reg.items():
+            if time.time() - ts < 60*10: # 10 minutes
+                continue
             try:
                 shm = shared_memory.SharedMemory(name=name)
                 shm.close()

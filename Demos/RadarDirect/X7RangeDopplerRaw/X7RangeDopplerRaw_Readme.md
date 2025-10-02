@@ -1,22 +1,16 @@
 # X7 RangeDoppler raw channels demo
 
-This document describes the X7 RangeDoppler raw channels demo and how to configure it. In addition the concept of Range-Doppler processing is briefly explained. To run the demo just run the 'runX7RangeDopplerRaw.py' file with python.
-
-```
-python <path-to-runX7RangeDopplerRaw.py>
-```
+This document describes the X7 RangeDoppler raw channels demo and how to configure it. In addition the concept of Range-Doppler processing is briefly explained.
 
 ## Description of the X7 RangeDoppler raw channels demo
 
 The X7 RangeDoppler raw channels demo uses the Novelda X7 RadarDirect radar application for streaming complex baseband frames from the X7 chip, and then calculates the Range-Doppler map for each active raw radar channel. The demo provides options to configure the X7 radar chip, the Range-Doppler processing and the visualization, and allows both running live using a Novelda X7F202 radar module, or running playback on recorded data. For a description of the concept of Range-Doppler processing, please see the [Range-Doppler processing](#range-doppler-processing) section.
 
 ### Running the demo
-To run the demo you first need to set up the necessary parameters in a preset file, the default one is Presets/[default_preset.json](./Presets/default_preset.json). Then run 
+To run the demo you first need to set up the necessary parameters in a preset file. You can find examples of them in the `Presets` folder. A convenient way to work is to make a copy of the preset you want to base your application on, then update it with the relevant local paths and custom parameter changes. The default preset used is Presets/[default_preset.json](./Presets/default_preset.json). When you have your desired preset, you can run:
 ```
 python <path-to-runX7RangeDopplerRaw.py> <path-to-preset_file.json>
 ```
-
-If runX7RangeDopplerRaw.py is called without an argument it will load the default json file.
 
 ### Configuration
 
@@ -61,7 +55,7 @@ In addition, there are some hotkeys for GUI control:
 
 Below is an example of the available high level demo parameters, and examples on how to set them.
 
-| Hotkey | Description |
+| Parameter | Description |
 | -------- | -------- |
 | IsLive | `true`/`false` - Controls whether to run live with an X7F202 radar module connected, or playback of already recorded data. |
 | BA22FirmwarePath | `"<path-to-sdk>/firmware/X7_Application_BA22_*_RadarDirect_*.app"` - Necessary when `IsLive = true` and should point to the RadarDirect application binary provided in the Novelda X7 SDK. |
@@ -111,8 +105,8 @@ To avoid this, reduce the FPS and/or update rate of the Range-Doppler to reduce 
 "RDPlottingParameters": {
     "MaxBufferedFrames" : "-1",
     "ZLimVec" : "{-60.0, 20.0}"
-    "XLimVec" : "{}",
-    "YLimVec" : "{}"
+    "XLimVec" : "{0.4, 6.0}",
+    "YLimVec" : "{-15.0, 15.0}"
 }
 ```
 
@@ -122,7 +116,7 @@ The visualization buffers Range-Doppler maps in memory, allowing stepping backwa
 `XLimVec` specifies the initial range limits (in meters)
 `YLimVec` specifies the initial Doppler limits (in hertz)
 
-All of these can be changed interactively while running the demo. If any of these limit vectors are omitted or left empty "{}", then the default values will be used.
+All of these can be changed interactively while running the demo. If any of these limit vectors are omitted then the default values will be used.
 
 ## Range-Doppler processing
 

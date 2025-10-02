@@ -74,8 +74,8 @@ class RangeDopplerPlotter:
         self.plot_linear_scale: bool       = False
         self.shm_on_exit = shm_on_exit
 
-        self.x_lim_vec: np.ndarray = (0, 0)
-        self.y_lim_vec: np.ndarray = (0, 0)
+        self.x_lim_vec: np.ndarray = None
+        self.y_lim_vec: np.ndarray = None
         self.z_lim_vec: np.ndarray = None
         
         self.rd_setup: RDRawSetup = None
@@ -341,9 +341,15 @@ class RangeDopplerPlotter:
     def reset_limits(self):
         if not self.initialized:
             return
+        
+        range_const_start = self.first_setup_dict.get("default_start_range", 0)
 
         for plot in self.plot_dict.values():
-            plot.change_xlims(self.range_axis.min_val, self.range_axis.max_val)
+            if range_const_start > 0:
+                plot.change_xlims(range_const_start, self.range_axis.max_val)
+            else:
+                plot.change_xlims(self.range_axis.min_val, self.range_axis.max_val)
+
             plot.change_ylims(self.doppler_axis.min_val, self.doppler_axis.max_val)
             plot.change_zlims(self.rd_setup.zlim_vec[0], self.rd_setup.zlim_vec[1])
 
@@ -384,7 +390,11 @@ class RangeDopplerPlotter:
         self.dopplermin_lineedit.setText(f"{self.doppler_axis.min_val:.2f}")
         self.dopplermax_lineedit.setText(f"{self.doppler_axis.max_val:.2f}")
 
-        self.rangemin_lineedit.setText(f"{self.range_axis.min_val:.2f}")
+        range_const_start = self.first_setup_dict.get("default_start_range", 0)
+        if range_const_start > 0:
+            self.rangemin_lineedit.setText(f"{range_const_start:.2f}")
+        else:
+            self.rangemin_lineedit.setText(f"{self.range_axis.min_val:.2f}")
         self.rangemax_lineedit.setText(f"{self.range_axis.max_val:.2f}")
 
         self.zmin_lineedit.setText(f"{self.power_axis.curr_min_val:.2f}")
@@ -422,11 +432,11 @@ class RangeDopplerPlotter:
             return True
 
         elif event.key() == QtCore.Qt.Key_Left:
-            self.move_frame_left()
+            self.move_frame(-1)
             return True
 
         elif event.key() == QtCore.Qt.Key_Right:
-            self.move_frame_right()
+            self.move_frame(1)
             return True
         
         elif event.key() == QtCore.Qt.Key_Z:
@@ -451,23 +461,14 @@ class RangeDopplerPlotter:
         for plot in self.plot_dict.values():
             plot.switch_cam_state(state)
 
-    def move_frame_left(self):
+    def move_frame(self, direction: int):
         if not self.initialized or len(self.rd_plot_data_buffer) <= 1:
             return
         self.paused = True
-        self.curr_data_frame_inx -= 1
+        self.curr_data_frame_inx += direction
         if self.curr_data_frame_inx < 0:
             self.curr_data_frame_inx = 0
-
-        self.draw_data_frame(self.rd_plot_data_buffer[self.curr_data_frame_inx])
-        self.frame_lineedit.setText(f"{int(self.curr_data_frame_inx + 1)}")
-
-    def move_frame_right(self):
-        if not self.initialized or len(self.rd_plot_data_buffer) <= 1:
-            return
-        self.paused = True
-        self.curr_data_frame_inx += 1
-        if self.curr_data_frame_inx >= len(self.rd_plot_data_buffer):
+        elif self.curr_data_frame_inx >= len(self.rd_plot_data_buffer):
             self.curr_data_frame_inx = len(self.rd_plot_data_buffer) - 1
 
         self.draw_data_frame(self.rd_plot_data_buffer[self.curr_data_frame_inx])
@@ -583,8 +584,6 @@ class RangeDopplerPlotter:
     def draw_data_frame(self, frame: RDRawPlotData):
         if not self.initialized:
             self.initialize_axes()
-            self.rd_plot_data = frame
-            self.draw_data_frame(frame)
 
         self.rd_plot_data = frame
         for txrx in frame.rd_dict_data.keys():

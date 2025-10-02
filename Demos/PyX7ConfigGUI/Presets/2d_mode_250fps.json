@@ -1,7 +1,7 @@
 {
     "X7UserConfiguration" : {
         "FPS" : "250.0",
-        "DutyCycle" : "0.7",
+        "DutyCycle" : "0.5",
         "AntennaGain" : "2.60",
         "PulsePeriod" : "0",
         "MaxRange" : "6.0"

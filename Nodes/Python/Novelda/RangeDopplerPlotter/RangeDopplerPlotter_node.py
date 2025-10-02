@@ -30,9 +30,9 @@ class RangeDopplerPlotter:
         self.frames_between_pd = 0
         self.fps = 1
         self.enable_dc_removal = False
+        self.num_saved_frames = -1
 
         self.z_lim_vec = np.array([-70.0, 10.0])
-        self.num_saved_frames = -1  # all
 
     def set_parameters(self, context, params, sections):
         for section in sections:
@@ -45,9 +45,12 @@ class RangeDopplerPlotter:
             if "FFTSize" in curr_sec:
                 self.fft_size = int(np.array(curr_sec["FFTSize"])[0])
             if "ZLimVec" in curr_sec:
-                newzlim = np.array(curr_sec["ZLimVec"])
-                if newzlim.size == 2:
-                    self.z_lim_vec = newzlim
+                try:
+                    newzlim = np.array(curr_sec["ZLimVec"])
+                    if newzlim.size == 2:
+                        self.z_lim_vec = newzlim
+                except Exception as e:
+                    pass
             if "RangeOffset" in curr_sec:
                 self.range_offset = float(np.array(curr_sec["RangeOffset"])[0])
             if "BinLength" in curr_sec:
@@ -65,14 +68,20 @@ class RangeDopplerPlotter:
             if "IsLive" in curr_sec:
                 self.is_live = np.array(curr_sec["IsLive"], dtype=bool)[0]
             if "XLimVec" in curr_sec:
-                newxlim = np.array(curr_sec["XLimVec"])
-                if newxlim.size == 2:
-                    self.x_lim_vec = newxlim
+                try:
+                    newxlim = np.array(curr_sec["XLimVec"])
+                    if newxlim.size == 2:
+                        self.x_lim_vec = newxlim
+                except Exception as e:
+                    pass
             if "YLimVec" in curr_sec:
-                newylim = np.array(curr_sec["YLimVec"])
-                if newylim.size == 2:
-                    self.y_lim_vec = newylim
-                
+                try:
+                    newylim = np.array(curr_sec["YLimVec"])
+                    if newylim.size == 2:
+                        self.y_lim_vec = newylim
+                except Exception as e:
+                    pass
+
     def buildup(self):
 
         MAX_RANGE_BINS = 192
