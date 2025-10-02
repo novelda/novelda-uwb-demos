@@ -12,6 +12,9 @@ When demos are added/updated, the python requirements tend to update/change. Eve
 
 ---
 
+---
+ℹ️**NOTE**ℹ️
+
 This repo uses [Git LFS](https://git-lfs.com/) for binary and image files. You must first install Git LFS and then set it up with
  ```
  git lfs install
@@ -21,6 +24,8 @@ If you have already cloned the repository before installing and setting up Git L
  git lfs install
  git lfs pull
  ```
+
+---
 
  Our aim is to keep adding new demo contents to this site so stay updated.
 
@@ -55,10 +60,10 @@ Here is the list of demos currently supported with python 3.10:
 | Demo                                                                                   | Description                                         | Status             |
 |----------------------------------------------------------------------------------------|-----------------------------------------------------|--------------------|
 | [X7RangeDopplerRaw](./Demos/RadarDirect/X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md) | RangeDoppler visualization of the Tx/Rx rawchannels | :white_check_mark: |
-| X7RangeDopplerBeamforming | RangeDoppler visualization of customized beamformed radar frames | :x: |
+| X7RangeDopplerBeamforming | RangeDoppler visualization of beamformed radar frames at configurable angles | :x: |
 | [PyX7ConfigGUI](./Demos/PyX7ConfigGUI/README.md) | GUI tool for pyx7configuration                      | :white_check_mark: |
 | [X7BasebandRaw](./Demos/RadarDirect/X7BasebandRaw/X7BasebandRaw_Readme.md) | Live/playback baseband frames visualization of the Tx/Rx raw channels | :white_check_mark: |
-| X7BasebandBeamforming | Live/playback baseband frames visualization of customized beamformed radar frames | :x: |
+| X7BasebandBeamforming | Live/playback baseband frames visualization of beamformed radar frames at configurable angles | :x: |
 | [X7RadarDirectCallback](./Demos/RadarDirect/X7RadarDirectCallback/X7RadarDirectCallback_Readme.md) | Live/playback complex baseband frame streaming into custom python callback function | :white_check_mark: |
 | ULPP_Presence1D | Live/playback visualization of X7 ULPP Presence1D data | :x: |
 | ULPP_Presence2D | Live/playback visualization of X7 ULPP Presence2D data | :x: |
