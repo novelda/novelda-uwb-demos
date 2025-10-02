@@ -36,10 +36,13 @@ def run_with_setup(setup_json: str):
 
     if islive:
         pm["ConnectionParameters"]["BA22FirmwarePath"] = f"\"{ba22}\""
+        ba22_fp = Path(ba22).resolve()
+        if not os.path.isfile(ba22_fp):
+            raise FileNotFoundError(f"BA22 firmware file not specified or not found!")
     else:
         in_fp = Path(filesource_in).resolve()
         if not os.path.isfile(in_fp):
-            raise FileNotFoundError(f"Playback file {in_fp} not found!")
+            raise FileNotFoundError(f"Playback file for X7BasebandRaw not specified or not found!")
         pm["fileSource"]["Path"] = f"\"{in_fp}\""
 
     for sec, dct in stp.items():
@@ -76,6 +79,6 @@ if __name__ == "__main__":
         setup_json = str(Path(sys.argv[1]).resolve())
         run_with_setup(setup_json)
     else:
-        print("Usage: python runX7BasebandRawPlot.py <path to setup json>")
+        print("Usage: python runX7BasebandRawPlot.py <path-to-setup.json>")
     
     

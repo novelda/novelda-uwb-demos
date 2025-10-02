@@ -25,4 +25,4 @@ if __name__ == "__main__":
             setup_json)
 
     else:
-        print("Usage: python runX7RadarDirectCallback_example.py <path to preset json>")
+        print("Usage: python runX7RadarDirectCallback_example.py <path-to-setup.json>")
