@@ -71,8 +71,11 @@ def run_with_setup(setup_json: str):
     flow.run()
 
 if __name__ == "__main__":
-    setup_json = str(Path(__file__).resolve().parent / "Presets" / "default_preset.json")
+    setup_json = ""
     if len(sys.argv) > 1:
         setup_json = str(Path(sys.argv[1]).resolve())
+        run_with_setup(setup_json)
+    else:
+        print("Usage: python runX7BasebandRawPlot.py <path to setup json>")
     
-    run_with_setup(setup_json)
+    
