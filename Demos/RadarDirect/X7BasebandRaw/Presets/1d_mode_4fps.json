@@ -1,0 +1,29 @@
+{
+    "IsLive" : true,
+    "BA22FirmwarePath" : "",
+    "PlaybackFile" : "",
+
+    "DoRecording" : false,
+    "RecordingDirectory" : "",
+    "RecordingPrefix" : "rec_",
+
+    "DCRemoval" : false,
+
+    "RadarSource": {
+        "FPS": "4.0",
+        "PulsePeriod": "4",
+        "MframesPerPulse": "3",
+        "PulsesPerIteration": "35",
+        "IterationsPerFrame": "234",
+        "TxPower": "3",
+        "InterleavedFrames": "0",
+        "TxChannelSequence": "{0u16}",
+        "RxMaskSequence": "{1u16}"
+    },
+
+    "BBPlottingParameters": 
+    {
+        "MaxBufferedFrames" : "-1",
+        "YLimVec" : "{-60.0, 60.0}"
+    }
+}
