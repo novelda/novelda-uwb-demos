@@ -37,7 +37,10 @@ def run_with_setup(setup_json: str):
     if islive:
         pm["ConnectionParameters"]["BA22FirmwarePath"] = f"\"{ba22}\""
     else:
-        pm["fileSource"]["Path"] = f"\"{filesource_in}\""
+        in_fp = Path(filesource_in).resolve()
+        if not os.path.isfile(in_fp):
+            raise FileNotFoundError(f"Playback file {in_fp} not found!")
+        pm["fileSource"]["Path"] = f"\"{in_fp}\""
 
     for sec, dct in stp.items():
         if isinstance(dct, dict):
