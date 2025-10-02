@@ -2,9 +2,15 @@
 
 Welcome to a repo dedicated to demos showcasing the capabilities of the Novelda X7 UWB chip.
 
-
 If you want to use, modify and share the demos go ahead and clone the repo to 
 your machine.
+
+---
+ℹ️**NOTE**ℹ️
+
+When demos are added/updated, the python requirements tend to update/change. Even if you have previously installed requirements using `python -m pip install -r ./requirements.txt`, you will need to do this again if there has been requirement changes.
+
+---
 
 This repo uses [Git LFS](https://git-lfs.com/) for binary and image files. You must first install Git LFS and then set it up with
  ```
@@ -49,10 +55,11 @@ Here is the list of demos currently supported with python 3.10:
 | Demo                                                                                   | Description                                         | Status             |
 |----------------------------------------------------------------------------------------|-----------------------------------------------------|--------------------|
 | [X7RangeDopplerRaw](./Demos/RadarDirect/X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md) | RangeDoppler visualization of the Tx/Rx rawchannels | :white_check_mark: |
-| [PyX7Configuration_GUI](./Demos/PyX7ConfigGUI/README.md)                               | GUI tool for pyx7configuration                      | :white_check_mark: |
-| RunRadarDirect                                                                         | Run custom python scripts with RadarDirect          | :x:                |
-| X7BasebandRecorder                                                                     | Baseband recorder for the X7-devkit                 | :x:                |
-| X7BasebandPlotter                                                                      | Live/Playback plotting of x7 baseband data          | :x:                |
-| ULPP_Presence1D                                                                        | Live/Playback plotting of x7 presence1d data        | :x:                |
-| ULPP_Presence2D                                                                        | Live/Playback plotting of x7 presence2d data        | :x:                |
+| X7RangeDopplerBeamforming | RangeDoppler visualization of customized beamformed radar frames | :x: |
+| [PyX7ConfigGUI](./Demos/PyX7ConfigGUI/README.md) | GUI tool for pyx7configuration                      | :white_check_mark: |
+| [X7BasebandRaw](./Demos/RadarDirect/X7BasebandRaw/X7BasebandRaw_Readme.md) | Live/playback baseband frames visualization of the Tx/Rx raw channels | :white_check_mark: |
+| X7BasebandBeamforming | Live/playback baseband frames visualization of customized beamformed radar frames | :x: |
+| [X7RadarDirectCallback](./Demos/RadarDirect/X7RadarDirectCallback/X7RadarDirectCallback_Readme.md) | Live/playback complex baseband frame streaming into custom python callback function | :white_check_mark: |
+| ULPP_Presence1D | Live/playback visualization of X7 ULPP Presence1D data | :x: |
+| ULPP_Presence2D | Live/playback visualization of X7 ULPP Presence2D data | :x: |
 
