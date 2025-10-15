@@ -57,10 +57,11 @@ The demos can be used starting with the official 0.6 SDK release.
 
 Here is the list of demos currently supported with python 3.10:
 
-| Demo                                                                                   | Description                                         | Status             |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------|--------------------|
-| [X7RangeDopplerRaw](./Demos/RadarDirect/X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md) | RangeDoppler visualization of the Tx/Rx rawchannels | :white_check_mark: |
-| X7RangeDopplerBeamforming | RangeDoppler visualization of beamformed radar frames at configurable angles | :x: |
+| Demo                                                                                                                         | Description                                                                                                   | Status             |
+|------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|--------------------|
+| [X7RangeDopplerRaw](./Demos/RadarDirect/X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md)                                       | RangeDoppler visualization of the Tx/Rx rawchannels                                                           | :white_check_mark: |
+| [X7RangeDopplerBeamforming](./Demos/RadarDirect/X7RangeDopplerBeamforming/X7RangeDopplerBeamforming_Readme.md)               | RangeDoppler visualization of beamformed radar frames at configurable angles                                  | :white_check_mark: |
+| [X7RangeDopplerBeamformingCallback](./Demos/RadarDirect/X7RangeDopplerBeamformingCallback/X7RDBeamformingCallback_Readme.md) | Live/Playback of fully customisable Digital Beamformed RangeDoppler Maps into custom python callback function | :white_check_mark: |
 | [PyX7ConfigGUI](./Demos/PyX7ConfigGUI/README.md) | GUI tool for pyx7configuration                      | :white_check_mark: |
 | [X7BasebandRaw](./Demos/RadarDirect/X7BasebandRaw/X7BasebandRaw_Readme.md) | Live/playback baseband frames visualization of the Tx/Rx raw channels | :white_check_mark: |
 | X7BasebandBeamforming | Live/playback baseband frames visualization of beamformed radar frames at configurable angles | :x: |
