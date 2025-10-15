@@ -1,7 +1,11 @@
 SIGNAL_SEMANTIC_RADAR_X7 = "radar_x7"
+SIGNAL_SEMANTIC_RANGEDOPPLER = "rangedoppler"
+
 ARRAY_SEMANTIC_RADAR_TRXMASK = "radar_trx_mask"
 ARRAY_SEMANTIC_BBIQ_FLOAT32 = "bbiq_float32"
 ARRAY_SEMANTIC_RF_FLOAT32 = "rf_float32"
+ARRAY_SEMANTIC_RANGEDOPPLERPOWER_4D = "rangedoppler_power_4D"
+ARRAY_SEMANTIC_RANGEDOPPLERPOWER_IQ_4D = "rangedoppler_iq_4D"
 
 # ----- python custom ------
 
@@ -10,3 +14,4 @@ SIGSEM_RADAR_PARAMETERS = "RadarDirectParameters"
 ARRSEM_BIN_LENGTH = "BinLength"
 ARRSEM_RANGE_OFFSET = "RangeOffset"
 ARRSEM_RANGE_DECIMATION = "RangeDecimation"
+ARRSEM_RD_BEAM_PARAMS = "RDBFParametersVec"

@@ -103,6 +103,9 @@ class BasebandPlotter:
 
         self.rx_plot_colors = [ "#C94848", "#43A343" ]
 
+        self.frame_received_counter = 0
+        self.frame_dropped_counter = 0
+
         self.curr_bbif_data: BasebandDataFrame = None
 
         # timestamp received : RDRawPlotData
@@ -237,7 +240,11 @@ class BasebandPlotter:
         curr_frame_seq = self.bbif_plot_data_buffer[self.curr_data_frame_inx].seq_num
         timetxt = time.strftime('%Y.%m.%d %H:%M:%S', time.localtime(curr_frame_ts/1000))
         rel_time_txt = (curr_frame_ts - self.first_timestamp)/1000
-        self.mainwin.seqNumTimeLabel.setText(f"{timetxt}\nSince Start: {rel_time_txt:.1f}s\nSequence number: {curr_frame_seq}")
+        self.mainwin.seqNumTimeLabel.setText(
+            f"{timetxt}\nSince Start: {rel_time_txt:.1f}s\nSequence number: {curr_frame_seq}"
+            f"\nNum frames received: {self.frame_received_counter}"
+            f"\nNum frames dropped: {self.frame_dropped_counter}"
+            )
 
     def reset_limits(self):
         if not self.initialized:
@@ -274,8 +281,7 @@ class BasebandPlotter:
         self.mainwin.liveOrPlaybackLabel.setText(liveplay_text)
             
     def set_label_curr_frame(self):
-        if not self.paused:
-            self.mainwin.currFrameLEdit.setText(f"{int(self.curr_data_frame_inx + 1)}")
+        self.mainwin.currFrameLEdit.setText(f"{int(self.curr_data_frame_inx + 1)}")
         self.mainwin.totalNumFramesBuffLabel.setText(f"/ {self.curr_label_frame_max}")
 
     def init_lims_lineedit(self):
@@ -406,6 +412,7 @@ class BasebandPlotter:
             self.first_timestamp = data.timestamp
 
         self.bbif_plot_data_buffer.append(data)
+        self.frame_received_counter += 1
 
         # logic for skipping frames to draw, to keep up with live data
         # make sure to draw all TX and then skip some frames
@@ -442,8 +449,12 @@ class BasebandPlotter:
 
         # Limit the buffer size to avoid memory issues
         if len(self.bbif_plot_data_buffer) > self.num_saved_frames + fps*5:
+            oldlen = len(self.bbif_plot_data_buffer)
             self.bbif_plot_data_buffer = self.bbif_plot_data_buffer[-self.num_saved_frames:]
-            self.curr_data_frame_inx = len(self.bbif_plot_data_buffer) - 1
+            num_removed = oldlen - len(self.bbif_plot_data_buffer)
+            self.frame_dropped_counter += num_removed
+            self.curr_data_frame_inx = np.clip(self.curr_data_frame_inx - num_removed, 0, len(self.bbif_plot_data_buffer)-1)
+            self.set_label_curr_frame()
         
         if self.curr_label_frame_max != len(self.bbif_plot_data_buffer):
             self.curr_label_frame_max = len(self.bbif_plot_data_buffer)

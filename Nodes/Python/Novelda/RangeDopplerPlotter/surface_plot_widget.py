@@ -434,7 +434,7 @@ class Matrix3DPlot(object):
         self.current_data: np.ndarray = None
         
         if plot_label:
-            self.add_screen_text_overlay(plot_label, position="bottom-left")
+            self.plot_onscreen_label = self.add_screen_text_overlay(plot_label, position="bottom-left")
         
         # min max center
         self.xaxis_labels: dict[str, GLTextImage] = {}
@@ -456,6 +456,10 @@ class Matrix3DPlot(object):
         self.curr_cam_state = CameraState.DEFAULT
 
         self.non_clipped_curr_data = None
+    
+    def set_onscreen_label(self, new_text: str):
+        if hasattr(self, 'plot_onscreen_label'):
+            self.plot_onscreen_label.setText(new_text)
     
     def hotkey_callback(self, event: pg.QtGui.QKeyEvent):
         if event.key() == QKeys.Key_W:
@@ -626,7 +630,8 @@ class Matrix3DPlot(object):
                                             self.y_axis.val2bin(self.y_axis.curr_max_val)+0.1)
 
         # label
-        text = f"Range={self.x_axis.bin2val(xbin):.2f}m\nDoppler={self.y_axis.bin2val(ybin):.2f}Hz\nPower={zval:.2f}dB"
+        text = f"{self.x_axis.name}={self.x_axis.bin2val(xbin):.2f}{self.x_axis.unit}\n{self.y_axis.name}={self.y_axis.bin2val(ybin):.2f}{self.y_axis.unit}\n{self.z_axis.name}={zval:.2f}{self.z_axis.unit}"
+        
         if self.surface_mark.label is None:
             self.surface_mark.label = self.add_screen_text_overlay(text, position="bottom-right")
         else:
@@ -1206,21 +1211,12 @@ class Matrix3DPlot(object):
         if not self.surface_mark.label.isHidden() and self.curr_cam_state == CameraState.ORTHO_Z:
             self.surface_mark.line.translate(0,0, 100)
 
-    def change_ylims(self, ymin, ymax):
+    def change_ylims(self, ymin, ymax, instant_update=True):
         self.y_axis.curr_min_val = ymin
         self.y_axis.curr_max_val = ymax
 
-        self._remove_axis_labels()
-        self._add_axis_labels()
-        self.fix_colorbar_labels_camera_state()
-        if self.surface_mark.label is not None:   
-            if self.surface_mark.label.isHidden() == False:
-                self.place_surface_mark(self.surface_mark.xbin, self.surface_mark.ybin, even_if_same=True)
-        self.scale_data_view()
-    
-    def change_xlims(self, xmin, xmax):
-        self.x_axis.curr_min_val = xmin
-        self.x_axis.curr_max_val = xmax
+        if not instant_update:
+            return
 
         self._remove_axis_labels()
         self._add_axis_labels()
@@ -1230,9 +1226,39 @@ class Matrix3DPlot(object):
                 self.place_surface_mark(self.surface_mark.xbin, self.surface_mark.ybin, even_if_same=True)
         self.scale_data_view()
     
-    def change_zlims(self, zmin, zmax):
+    def change_xlims(self, xmin, xmax, instant_update=True):
+        self.x_axis.curr_min_val = xmin
+        self.x_axis.curr_max_val = xmax
+
+        if not instant_update:
+            return
+
+        self._remove_axis_labels()
+        self._add_axis_labels()
+        self.fix_colorbar_labels_camera_state()
+        if self.surface_mark.label is not None:   
+            if self.surface_mark.label.isHidden() == False:
+                self.place_surface_mark(self.surface_mark.xbin, self.surface_mark.ybin, even_if_same=True)
+        self.scale_data_view()
+
+    def update_changed_lims(self):
+        self._remove_axis_labels()
+        self._add_axis_labels()
+        self.fix_colorbar_labels_camera_state()
+        if self.surface_mark.label is not None:   
+            if self.surface_mark.label.isHidden() == False:
+                self.place_surface_mark(self.surface_mark.xbin, self.surface_mark.ybin, even_if_same=True)
+        self.scale_data_view()
+
+        if self.current_data is not None:
+            self.update_data(self.non_clipped_curr_data)
+    
+    def change_zlims(self, zmin, zmax, instant_update=True):
         self.z_axis.curr_min_val = zmin
         self.z_axis.curr_max_val = zmax
+
+        if not instant_update:
+            return
 
         self._remove_axis_labels()
         self._add_axis_labels()

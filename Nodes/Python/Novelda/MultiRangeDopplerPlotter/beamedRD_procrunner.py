@@ -7,9 +7,9 @@ from pyqtgraph.Qt import QtCore
 QTimer = QtCore.QTimer
 
 from Utils.sharedmem_handler import SharedMemReceiver
-from BasebandPlotter_plotter import BasebandPlotter
+from MultiRangeDopplerPlotter.BeamedRD_plotter import MultiRangeDopplerPlotter
 
-def main_loop(sharedmem: SharedMemReceiver, plotter: BasebandPlotter,
+def main_loop(sharedmem: SharedMemReceiver, plotter: MultiRangeDopplerPlotter, 
               close_path: str, poll_timer):
 
     if not os.path.exists(close_path):
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         verbose=False
         )
 
-    plotter = BasebandPlotter(shm_on_exit=sharedmem.cleanup)
+    plotter = MultiRangeDopplerPlotter(shm_on_exit=sharedmem.cleanup)
     plotter.init_window()
     print("PLOTTING_PROCESS_READY", flush=True)
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         data = sharedmem.read_objdata()
         plotter.receive_data(data)
 
-    poll_timer = QTimer(plotter.mainwin)
+    poll_timer = QTimer(plotter.mwin)
     poll_timer.timeout.connect(lambda: main_loop(sharedmem, plotter, close_path, poll_timer))
 
     UPDATE_FREQ = 40
