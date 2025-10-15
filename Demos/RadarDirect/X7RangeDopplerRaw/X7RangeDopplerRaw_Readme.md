@@ -64,6 +64,8 @@ Below is an example of the available high level demo parameters, and examples on
 | RecordingDirectory | `"<path-to-RecordingDirectory>"` - Folder to save recorded data files |
 | RecordingPrefix | E.g. `"test_recording_"` - Prefix for the recorded data file. Will be appended by timestamp for when recording started. |
 
+If `DoRecording = true` the JSON preset file will be copied and filled out with `IsLive=false` and `PlaybackFile=<path-to-rec>` so that you can use it when doing playback.
+
 #### X7 radar parameters
 
 Configuration of the low-level X7 radar parameters requires deep understanding of the chip, and it's recommended to use provided configuration tools (e.g. `pyx7configuration`) to help set up the system correctly. For a description of each of the X7 radar parameters, please see the pyx7configuration documentation provided on the [Novelda X7 developer website](https://dev.novelda.com/X7/_examples/x7_fundamentals/pyx7configuration_0.6.html) (requires access).

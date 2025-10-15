@@ -11,16 +11,12 @@ from pathlib import Path
 import PySignalFlow as psf
 
 from Utils.sharedmem_handler import SharedMemSender
-from RangeDopplerPlotter.RangeDopplerPlotter_plotter import *
-
-SIGNAL_SEMANTIC_RANGEDOPPLER = "rangedoppler"
-ARRAY_SEMANTIC_RANGEDOPPLER_POWER_AGGREGATED_RAWCHANNELS = "rangedoppler_power_aggregated_rawchannels"
-ARRAY_SEMANTIC_RANGEDOPPLER_IQ_AGGREGATED_RAWCHANNELS = "rangedoppler_iq_aggregated_rawchannels"
-ARRAY_SEMANTIC_RADAR_TRXMASK = "radar_trx_mask"
+from Utils.semantics import *
+from MultiRangeDopplerPlotter.BeamedRD_plotter import *
 
 DEFAULT_START_RANGE = 0.4  # meters
 
-class RangeDopplerPlotter:
+class MultiRangeDopplerPlotter:
     def __init__(self, *_):
         self.initialized = False
 
@@ -32,7 +28,14 @@ class RangeDopplerPlotter:
         self.enable_dc_removal = False
         self.num_saved_frames = -1
 
-        self.z_lim_vec = np.array([-70.0, 10.0])
+        self.az_beam_angles = np.array([])
+
+        self.angle_lim_vec = np.array([-90.0, 90.0])
+
+        self.range_slices_to_plot = np.array([1.0])
+        self.doppler_slices_to_plot = np.array([0.0])
+        self.angle_slices_to_plot = np.array([0.0])
+        self.grid_cols_per_row = 2
 
     def set_parameters(self, context, params, sections):
         for section in sections:
@@ -44,19 +47,17 @@ class RangeDopplerPlotter:
                 self.fps = float(np.array(curr_sec["FPS"])[0])
             if "FFTSize" in curr_sec:
                 self.fft_size = int(np.array(curr_sec["FFTSize"])[0])
-            if "ZLimVec" in curr_sec:
+            if "PowerLimVec" in curr_sec:
                 try:
-                    newzlim = np.array(curr_sec["ZLimVec"])
+                    newzlim = np.array(curr_sec["PowerLimVec"])
                     if newzlim.size == 2:
-                        self.z_lim_vec = newzlim
+                        self.power_lim_vec = newzlim
                 except Exception as e:
                     pass
             if "RangeOffset" in curr_sec:
                 self.range_offset = float(np.array(curr_sec["RangeOffset"])[0])
             if "BinLength" in curr_sec:
                 self.bin_length = float(np.array(curr_sec["BinLength"])[0])
-            if "Convert2Pwr" in curr_sec:
-                self.convert2pwr = np.array(curr_sec["Convert2Pwr"], dtype=bool)[0]
             if "NumFramesInPD" in curr_sec:
                 self.num_frames_in_pd = int(np.array(curr_sec["NumFramesInPD"])[0])
             if "MaxBufferedFrames" in curr_sec:
@@ -67,20 +68,46 @@ class RangeDopplerPlotter:
                 self.enable_dc_removal = np.array(curr_sec["enableDCRemoval"], dtype=bool)[0]
             if "IsLive" in curr_sec:
                 self.is_live = np.array(curr_sec["IsLive"], dtype=bool)[0]
-            if "XLimVec" in curr_sec:
+            if "azBeamAngles" in curr_sec:
+                self.az_beam_angles = np.array(curr_sec["azBeamAngles"], dtype=float)
+            if "RangeLimVec" in curr_sec:
                 try:
-                    newxlim = np.array(curr_sec["XLimVec"])
+                    newxlim = np.array(curr_sec["RangeLimVec"])
                     if newxlim.size == 2:
-                        self.x_lim_vec = newxlim
+                        self.range_lim_vec = newxlim
                 except Exception as e:
                     pass
-            if "YLimVec" in curr_sec:
+            if "DopplerLimVec" in curr_sec:
                 try:
-                    newylim = np.array(curr_sec["YLimVec"])
+                    newylim = np.array(curr_sec["DopplerLimVec"])
                     if newylim.size == 2:
-                        self.y_lim_vec = newylim
+                        self.doppler_lim_vec = newylim
                 except Exception as e:
                     pass
+            if "AngleLimVec" in curr_sec:
+                try:
+                    newalim = np.array(curr_sec["AngleLimVec"])
+                    if newalim.size == 2:
+                        self.angle_lim_vec = newalim
+                except Exception as e:
+                    pass
+            if "RangeSlicesToPlot" in curr_sec:
+                try:
+                    self.range_slices_to_plot = np.array(curr_sec["RangeSlicesToPlot"], dtype=float)
+                except Exception as e:
+                    pass
+            if "DopplerSlicesToPlot" in curr_sec:
+                try:
+                    self.doppler_slices_to_plot = np.array(curr_sec["DopplerSlicesToPlot"], dtype=float)
+                except Exception as e:
+                    pass
+            if "AngleSlicesToPlot" in curr_sec:
+                try:
+                    self.angle_slices_to_plot = np.array(curr_sec["AngleSlicesToPlot"], dtype=float)
+                except Exception as e:
+                    pass
+            if "GridColsPerRow" in curr_sec:
+                self.grid_cols_per_row = int(np.array(curr_sec["GridColsPerRow"])[0])
 
     def buildup(self):
 
@@ -89,10 +116,9 @@ class RangeDopplerPlotter:
         BYTES_PER_FLOAT = 4
 
         # + 50_000 to make sure theres space
-        self.shm_blocksize = self.fft_size * MAX_RANGE_BINS * MAX_AGGREGATED_FRAMES * BYTES_PER_FLOAT + 50_000
+        self.shm_blocksize = len(self.az_beam_angles) * self.fft_size * MAX_RANGE_BINS * MAX_AGGREGATED_FRAMES * BYTES_PER_FLOAT + 50_000
         
         self.shm_numblocks = 10 # a lot of blocks to speed up playback loading
-        self.convert2pwr = True
 
         # put verbose=False when released
         self.sharedmem_sender = SharedMemSender(self.shm_blocksize, self.shm_numblocks, verbose=True)
@@ -102,7 +128,7 @@ class RangeDopplerPlotter:
         closesig_file.close()
 
         # start plotting process
-        worker_script = str(Path(__file__).resolve().parent / "x7plotting_proc_runner.py")
+        worker_script = str(Path(__file__).resolve().parent / "beamedRD_procrunner.py")
         self.plotting_process = subprocess.Popen([
             sys.executable,  # Use the same Python executable
             worker_script,
@@ -121,26 +147,34 @@ class RangeDopplerPlotter:
             "fft_size" : self.fft_size,
             "range_offset" : self.range_offset,
             "bin_length" : self.bin_length,
-            "convert2pwr" : self.convert2pwr,
             "num_frames_in_pd" : self.num_frames_in_pd,
             "frames_between_pd" : self.frames_between_pd,
             "num_saved_frames" : self.num_saved_frames,
             "enable_dc_removal" : self.enable_dc_removal,
             "is_live" : self.is_live,
-            "default_start_range" : DEFAULT_START_RANGE
+            "default_start_range" : DEFAULT_START_RANGE,
+            "az_beam_angles" : self.az_beam_angles,
+            "range_slices_to_plot" : self.range_slices_to_plot,
+            "doppler_slices_to_plot" : self.doppler_slices_to_plot,
+            "angle_slices_to_plot" : self.angle_slices_to_plot,
+            "grid_cols_per_row" : self.grid_cols_per_row
         }
 
-        if hasattr(self, "z_lim_vec"):
-            if self.z_lim_vec.size == 2:
-                param_dict["z_lim_vec"] = self.z_lim_vec
+        if hasattr(self, "power_lim_vec"):
+            if self.power_lim_vec.size == 2:
+                param_dict["power_lim_vec"] = self.power_lim_vec
 
-        if hasattr(self, "x_lim_vec"):
-            if self.x_lim_vec.size == 2:
-                param_dict["x_lim_vec"] = self.x_lim_vec
+        if hasattr(self, "range_lim_vec"):
+            if self.range_lim_vec.size == 2:
+                param_dict["range_lim_vec"] = self.range_lim_vec
 
-        if hasattr(self, "y_lim_vec"):
-            if self.y_lim_vec.size == 2:
-                param_dict["y_lim_vec"] = self.y_lim_vec
+        if hasattr(self, "doppler_lim_vec"):
+            if self.doppler_lim_vec.size == 2:
+                param_dict["doppler_lim_vec"] = self.doppler_lim_vec
+
+        if hasattr(self, "angle_lim_vec"):
+            if self.angle_lim_vec.size == 2:
+                param_dict["angle_lim_vec"] = self.angle_lim_vec
 
         self.send_data(param_dict)
 
@@ -155,64 +189,25 @@ class RangeDopplerPlotter:
 
     def extract_rangedoppler_data(self, frame):
 
-        if self.convert2pwr:
-            self.current_data = np.asarray(
-                frame[SIGNAL_SEMANTIC_RANGEDOPPLER][ARRAY_SEMANTIC_RANGEDOPPLER_POWER_AGGREGATED_RAWCHANNELS]
-            )
-        else:
-            self.current_data = np.asarray(
-                frame[SIGNAL_SEMANTIC_RANGEDOPPLER][ARRAY_SEMANTIC_RANGEDOPPLER_IQ_AGGREGATED_RAWCHANNELS]
-            )
-
-        trx_mask = np.asarray(
-            frame[SIGNAL_SEMANTIC_RANGEDOPPLER][ARRAY_SEMANTIC_RADAR_TRXMASK]
-        )
-
-        self.num_tx_channels, self.num_rx_channels, self.num_bins_range, self.num_bins_doppler = self.current_data.shape
-
-        # prepare container for per (physical_tx, rx) power matrices
-        per_channel_data = {}
-
-        for tx_loop in range(self.num_tx_channels):
-            physical_tx = int(trx_mask[tx_loop, 1])  # already 0-based (assumption)
-
-            for rx in range(self.num_rx_channels):
-                rd_slice = self.current_data[tx_loop, rx, :, :]  # shape (range, doppler or doppler*2 for IQ)
-
-                if not self.convert2pwr:
-                    i_comp = rd_slice[:, 0::2]
-                    q_comp = rd_slice[:, 1::2]
-                    rd_slice = i_comp * i_comp + q_comp * q_comp
-                    if rx == 0 and tx_loop == 0:  # adjust doppler bins once
-                        self.num_bins_doppler = rd_slice.shape[1]
-
-                if not self.plot_linear_scale:
-                    rd_slice[rd_slice == 0] = 1e-16
-                    rd_slice = 10 * np.log10(rd_slice)
-
-                per_channel_data[(physical_tx, rx)] = rd_slice
+        self.current_data = np.asarray(
+            frame[SIGNAL_SEMANTIC_RANGEDOPPLER][ARRAY_SEMANTIC_RANGEDOPPLERPOWER_4D])[0]
+    
+        self.current_data = 10 * np.log10(self.current_data + 1e-12)
 
         # make setup info
-        rd_setup = RDRawSetup(
-            num_tx_channels  = self.num_tx_channels,
-            num_rx_channels  = self.num_rx_channels,
-            num_bins_range   = self.num_bins_range,
-            num_bins_doppler = self.num_bins_doppler,
+        rd_setup = MultiRDSetup(
             fps              = self.fps,
             fft_size         = self.fft_size,
             range_offset     = self.range_offset,
             bin_length       = self.bin_length,
-            zlim_vec         = self.z_lim_vec,
-            convert2pwr      = self.convert2pwr,
         )
 
         # make the full data struct
         # no need to put in the setup info every single time, but compared to the size of the total data
         # and total processing the info struct is insignificant
-        rd_plot_data = RDRawPlotData(
-            RDRawSetup=rd_setup,
-            rd_dict_data=per_channel_data,
-            trx_mask=trx_mask,
+        rd_plot_data = MultiRDPlotData(
+            multi_rd_setup=rd_setup,
+            rd_data=self.current_data,
             timestamp=frame.timestamp,
             seq_num=frame.sequence_number
         )

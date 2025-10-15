@@ -22,7 +22,6 @@
         "IterationsPerFrame" : "9374",
         "TxPower" : "3",
         "InterleavedFrames" : "5",
-        "Ilo5xMode" : "1",
         "TxChannelSequence" : "{0u16, 1u16}",
         "RxMaskSequence" : "{3u16, 3u16}"
     },

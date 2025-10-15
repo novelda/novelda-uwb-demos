@@ -1,0 +1,48 @@
+{
+    "IsLive" : true,
+    "BA22FirmwarePath" : "",
+    "PlaybackFile" : "",
+
+    "DoRecording" : false,
+    "RecordingDirectory" : "",
+    "RecordingPrefix" : "rec_",
+    
+    "RadarSource" : {
+        "FPS" : "4.0",
+        "PulsePeriod" : "8",
+        "MframesPerPulse" : "7",
+        "PulsesPerIteration" : "35",
+        "IterationsPerFrame" : "9374",
+        "TxPower" : "3",
+        "InterleavedFrames" : "5"
+    },
+
+    "BeamForming" : 
+    {
+        "azBeamAngles" : "{0.0}"
+    },
+
+    "RangeDoppler4D" : 
+    {
+        "NumFramesInPD" : "60",
+        "FramesBetweenPD" : "1",
+        "FFTSize" : "256",
+        "enableDCRemoval" :"true",
+        "Convert2Pwr" : "true"
+    },
+
+    "MultiRDPlottingParameters" : 
+    {
+        "MaxBufferedFrames" : "1000",
+        "PowerLimVec" : "{-60.0, 20.0}",
+        "RangeLimVec" : "{}",
+        "DopplerLimVec" : "{}",
+        "AngleLimVec" : "{-90.0, 90.0}",
+
+        "RangeSlicesToPlot" : "{0.4, 1.5, 4.0}",
+        "DopplerSlicesToPlot" : "{-30.0, 30.0}",
+        "AngleSlicesToPlot" : "{-30.0, 0.0, 30.0}",
+
+        "GridColsPerRow" : "2"
+    }
+}

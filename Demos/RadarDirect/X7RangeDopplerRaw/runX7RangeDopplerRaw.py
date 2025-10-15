@@ -7,6 +7,7 @@ from datetime import datetime
 import PySignalFlow as psf
 
 from Utils.param_maker import ParamMaker
+from Utils.misc import prep_rec_dir
 
 def run_with_setup(setup_json: str):
 
@@ -47,12 +48,11 @@ def run_with_setup(setup_json: str):
     record = stp["DoRecording"]
     recdir = stp["RecordingDirectory"]
     recprefix = stp["RecordingPrefix"]
-    recfp = Path(recdir).resolve() / (str(recprefix) +  datetime.now().strftime("%Y%m%dT%H%M%S") + ".sig")
 
-    if record:
+    if record and islive:
+        recfp, _ = prep_rec_dir(str(stp_fp), recdir, recprefix)
         pm["fileSink"]["Enabled"] = "true" if record else "false"
         pm["fileSink"]["Path"] = f"\"{str(recfp)}\""
-        os.makedirs(os.path.dirname(recfp), exist_ok=True)
 
     print("Running X7 Range Doppler Raw with preset: ", setup_json)
     flow.load(liveflow_fp if islive else playbackflow_fp)

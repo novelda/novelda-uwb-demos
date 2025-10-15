@@ -99,6 +99,9 @@ class RangeDopplerPlotter:
 
         self.did_first_lims_change = False
 
+        self.frame_received_counter = 0
+        self.frame_dropped_counter = 0
+
         # timestamp received : RDRawPlotData
         self.rd_plot_data_buffer: list[RDRawPlotData] = []
         self.plot_dict: dict[tuple[int, int], Matrix3DPlot] = {}
@@ -289,6 +292,12 @@ class RangeDopplerPlotter:
 
         self.mainwidget.setFocus()
 
+        # add dummy plot to initialize opengl context
+        dummy_plot = Matrix3DPlot(self.range_axis, self.doppler_axis, self.power_axis)
+        self.gridLayout.addWidget(dummy_plot.local_view, 0, 0)
+        self.gridLayout.removeWidget(dummy_plot.local_view)
+        dummy_plot.local_view.deleteLater()
+
         self.waiting_label = QLabel("Waiting for data...", self.mainwidget)
         self.waiting_label.setStyleSheet(f"""
             QLabel {{
@@ -336,7 +345,10 @@ class RangeDopplerPlotter:
         curr_frame_seq = self.rd_plot_data_buffer[self.curr_data_frame_inx].seq_num
         timetxt = time.strftime('%Y.%m.%d %H:%M:%S', time.localtime(curr_frame_ts/1000))
         rel_time_txt = (curr_frame_ts - self.first_timestamp)/1000
-        self.time_label.setText(f"{timetxt}\nSince Start: {rel_time_txt:.1f}s\nSequence number: {curr_frame_seq}")
+        self.time_label.setText(f"{timetxt}\nSince Start: {rel_time_txt:.1f}s\nSequence number: {curr_frame_seq}"
+            f"\nNum frames received: {self.frame_received_counter}"
+            f"\nNum frames dropped: {self.frame_dropped_counter}"
+            )
 
     def reset_limits(self):
         if not self.initialized:
@@ -379,11 +391,8 @@ class RangeDopplerPlotter:
         """)
         self.live_or_playback_label.setText(liveplay_text)
             
-        
-
     def set_label_curr_frame(self):
-        if not self.paused:
-            self.frame_lineedit.setText(f"{int(self.curr_data_frame_inx + 1)}")
+        self.frame_lineedit.setText(f"{int(self.curr_data_frame_inx + 1)}")
         self.frame_buffered_label.setText(f"/ {self.curr_label_frame_max}")
 
     def init_range_doppler_lineedit(self):
@@ -540,6 +549,7 @@ class RangeDopplerPlotter:
             self.first_timestamp = data.timestamp
 
         self.rd_plot_data_buffer.append(data)
+        self.frame_received_counter += 1
 
     def update(self):
         if not len(self.rd_plot_data_buffer):
@@ -547,15 +557,19 @@ class RangeDopplerPlotter:
 
         if not self.paused:
             self.curr_data_frame_inx = len(self.rd_plot_data_buffer) - 1
-            if self.rd_plot_data is self.rd_plot_data_buffer[self.curr_data_frame_inx]:
-                return
-            self.draw_data_frame(self.rd_plot_data_buffer[self.curr_data_frame_inx])
+            if not (self.rd_plot_data is self.rd_plot_data_buffer[self.curr_data_frame_inx]):
+                self.draw_data_frame(self.rd_plot_data_buffer[self.curr_data_frame_inx])
 
         # Limit the buffer size to avoid memory issues
-        if len(self.rd_plot_data_buffer) > self.num_saved_frames + 100:
+        bufflim = self.num_saved_frames + 100
+        if len(self.rd_plot_data_buffer) > bufflim:
+            oldlen = len(self.rd_plot_data_buffer)
             self.rd_plot_data_buffer = self.rd_plot_data_buffer[-self.num_saved_frames:]
-            self.curr_data_frame_inx = len(self.rd_plot_data_buffer) - 1
-        
+            num_removed = oldlen - len(self.rd_plot_data_buffer)
+            self.frame_dropped_counter += num_removed
+            self.curr_data_frame_inx = np.clip(self.curr_data_frame_inx-num_removed, 0, len(self.rd_plot_data_buffer)-1)
+            self.set_label_curr_frame()
+
         if self.curr_label_frame_max != len(self.rd_plot_data_buffer):
             self.curr_label_frame_max = len(self.rd_plot_data_buffer)
             self.set_label_curr_frame()

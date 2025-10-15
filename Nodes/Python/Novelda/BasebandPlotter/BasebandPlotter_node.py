@@ -89,7 +89,12 @@ class BasebandPlotter:
             f"{self.shm_blocksize}",
             f"{self.shm_numblocks}",
             self.close_path
-        ], stdout=None, stderr=None, text=True, bufsize=1)
+        ], stdout=subprocess.PIPE, stderr=None, text=True, bufsize=1)
+
+        for line in self.plotting_process.stdout:
+            if line.strip() == "PLOTTING_PROCESS_READY":
+                break
+            
         param_dict = {
             "fps" : self.fps,
             "range_offset" : self.range_offset,

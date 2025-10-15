@@ -40,6 +40,7 @@ if __name__ == "__main__":
 
     plotter = RangeDopplerPlotter(shm_on_exit=sharedmem.cleanup)
     plotter.init_window()
+    print("PLOTTING_PROCESS_READY", flush=True)
 
     if sharedmem.check_data_ready(): # for the params dict
         data = sharedmem.read_objdata()
