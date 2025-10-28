@@ -204,7 +204,7 @@ class XY2DPlotWidget(pg.PlotWidget):
                 min_px_dist = d
                 closest = (idx, identifier)
 
-        if closest and min_px_dist <= max_px_radius:
+        if closest is not None and min_px_dist <= max_px_radius:
             idx, ident = closest
             self.mark_point(idx, ident)
         else:

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-def prep_rec_dir(preset_json: str, recdir: str, recprefix: str) -> str:
+def prep_rec_dir(preset_json: str, recdir: str, recprefix: str, ignore_keys: list[str]=[]) -> str:
     """
     Prepares the recording directory by ensuring it exists and updating the preset JSON file
     with the recording path.
@@ -27,12 +27,15 @@ def prep_rec_dir(preset_json: str, recdir: str, recprefix: str) -> str:
 
     # copy preset json, set playback=True, set recording path
     stp_fp = Path(preset_json).resolve()
-    stp = {}
+    stp: dict = {}
     with open(stp_fp, "r") as f:
         stp = json.load(f)
     
     stp["IsLive"] = False
     stp["PlaybackFile"] = str(recfp)
+
+    for key in ignore_keys:
+        stp.pop(key, None)
 
     json_preset_copy = full_dir / (base_name + "_preset.json")
     with open(json_preset_copy, "w") as f:
