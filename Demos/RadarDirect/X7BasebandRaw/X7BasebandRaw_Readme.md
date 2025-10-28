@@ -55,7 +55,7 @@ Below is an example of the available high level demo parameters, and examples on
 | -------- | -------- |
 | IsLive | `true`/`false` - Controls whether to run live with an X7F202 radar module connected, or playback of already recorded data. |
 | BA22FirmwarePath | `"<path-to-sdk>/firmware/X7_Application_BA22_*_RadarDirect_*.app"` - Necessary when `IsLive = true` and should point to the RadarDirect application binary provided in the Novelda X7 SDK. |
-| PlaybackFile | `"<path-to-RecordingDirectory>/rec_*.sig"` - Necessary when `IsLive = false` and should point to the recorded data file. |
+| PlaybackFile | `"<path-to-RecordingDirectory>/rec_*.sig"` - Necessary when `IsLive = false` and should point to the recorded data file. When recording, a preset file with this already filled out is automatically generated alongside the recording. |
 | DoRecording | `true`/`false` - Controls whether to record the radar data to a file when `IsLive = true` |
 | RecordingDirectory | `"<path-to-RecordingDirectory>"` - Folder to save recorded data files |
 | RecordingPrefix | E.g. `"test_recording_"` - Prefix for the recorded data file. Will be appended by timestamp for when recording started. |

@@ -1,0 +1,33 @@
+{
+    "IsLive" : true,
+    "BA22FirmwarePath" : "",
+    "PlaybackFile" : "",
+
+    "DoRecording" : false,
+    "RecordingDirectory" : "",
+    "RecordingPrefix" : "rec_pres2d_",
+
+    "public": {
+      "DetectionZoneXYPoints" : "{0.0, 0.5}, {1.0, 0.5}, {1.0, -0.5}, {0.0, -0.5}",
+      "ConfidenceValues": "{30, 80, 75, 25}",
+      "ThresholdLevelAdjustment_Linear": "1.0",
+      "MaxNumDetections" : "1"
+    },
+
+    "Presence2DPlottingParameters": {
+      "ShowFOVLines": "true",
+      "ShowXYCoordinates": "true",
+      "InvertedTopView": "false",
+
+      "TrailBackwardSeconds": "1.0",
+      "TrailForwardSeconds": "1.0",
+
+      "MaxHistoryTimeplotsInS" : "300",
+
+      "RangeLimVec": "{}",
+      "PowerLimVec": "{-80.0, 20.0}",
+
+      "DefaultMiddlePlot": "Range",
+      "MaxBufferedFrames": "-1"
+    }
+}
