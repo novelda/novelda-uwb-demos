@@ -66,6 +66,7 @@ Here is the list of demos currently supported with python 3.10:
 | [X7BasebandRaw](./Demos/RadarDirect/X7BasebandRaw/X7BasebandRaw_Readme.md) | Live/playback baseband frames visualization of the Tx/Rx raw channels | :white_check_mark: |
 | X7BasebandBeamforming | Live/playback baseband frames visualization of beamformed radar frames at configurable angles | :x: |
 | [X7RadarDirectCallback](./Demos/RadarDirect/X7RadarDirectCallback/X7RadarDirectCallback_Readme.md) | Live/playback complex baseband frame streaming into custom python callback function | :white_check_mark: |
+| [ULPP_Presence2D](./Demos/ULPP/Presence2D/Presence2D_Readme.md) | Live/playback visualization of X7 ULPP Presence2D data | :white_check_mark: |
+| [ULPP_Presence2DOnHost](./Demos/ULPP/Presence2DOnHost/Presence2DOnHost_Readme.md) | Live/playback visualization of X7 ULPP Presence2D data with host processing. Allows tuning of ULPP Presence2D application parameters | :white_check_mark: |
+| [ULPP_Presence2DOnHostCallback](./Demos/ULPP/Presence2DOnHostCallback/Presence2DOnHostCallback_Readme.md) | Live/playback of X7 ULPP Presence2D data with host processing into custom python callback function | :white_check_mark: |
 | ULPP_Presence1D | Live/playback visualization of X7 ULPP Presence1D data | :x: |
-| ULPP_Presence2D | Live/playback visualization of X7 ULPP Presence2D data | :x: |
-
