@@ -64,7 +64,8 @@ Here is the list of demos currently supported with python 3.10:
 | [X7RangeDopplerBeamformingCallback](./Demos/RadarDirect/X7RangeDopplerBeamformingCallback/X7RDBeamformingCallback_Readme.md) | Live/Playback of fully customisable Digital Beamformed RangeDoppler Maps into custom python callback function | :white_check_mark: |
 | [PyX7ConfigGUI](./Demos/PyX7ConfigGUI/README.md) | GUI tool for pyx7configuration                      | :white_check_mark: |
 | [X7BasebandRaw](./Demos/RadarDirect/X7BasebandRaw/X7BasebandRaw_Readme.md) | Live/playback baseband frames visualization of the Tx/Rx raw channels | :white_check_mark: |
-| X7BasebandBeamforming | Live/playback baseband frames visualization of beamformed radar frames at configurable angles | :x: |
+| [X7RadarDirectBeamforming](./Demos/RadarDirect/X7RadarDirectBeamforming/X7RadarDirectBeamforming_Readme.md) | Live/playback baseband frames visualization of beamformed radar frames at configurable angles | :white_check_mark: |
+| [X7RadarDirectBeamformingCallback](./Demos/RadarDirect/X7RadarDirectBeamformingCallback/X7RadarDirectBeamformingCallback_Readme.md) | Live/playback baseband frames visualization of beamformed radar frames at configurable angles into custom python callback function | :white_check_mark: |
 | [X7RadarDirectCallback](./Demos/RadarDirect/X7RadarDirectCallback/X7RadarDirectCallback_Readme.md) | Live/playback complex baseband frame streaming into custom python callback function | :white_check_mark: |
 | [ULPP_Presence2D](./Demos/ULPP/Presence2D/Presence2D_Readme.md) | Live/playback visualization of X7 ULPP Presence2D data | :white_check_mark: |
 | [ULPP_Presence2DOnHost](./Demos/ULPP/Presence2DOnHost/Presence2DOnHost_Readme.md) | Live/playback visualization of X7 ULPP Presence2D data with host processing. Allows tuning of ULPP Presence2D application parameters | :white_check_mark: |

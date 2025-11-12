@@ -1,0 +1,47 @@
+{
+    "IsLive" : true,
+    "BA22FirmwarePath" : "",
+    "PlaybackFile" : "",
+
+    "DoRecording" : false,
+    "RecordingDirectory" : "",
+    "RecordingPrefix" : "rec_",
+
+    "RadarSource" : {
+        "FPS": "20.0",
+        "PulsePeriod": "12",
+        "MframesPerPulse": "12",
+        "PulsesPerIteration": "35",
+        "IterationsPerFrame": "156",
+        "TxPower": "3",
+        "InterleavedFrames": "5"
+    },
+
+    "BeamForming" : 
+    {
+        "azBeamAngles" : "{-90.0,-75.0,-60.0,-45.0,-30.0,-15.0, 0.0,15.0, 30.0, 45.0, 60.0, 75.0, 90.0}"
+    },
+
+    "StaticRemoval_IIR" : 
+    {
+        "DCEstimationSmoothCoeff" : "0.8"
+    },
+
+
+    "RadarDirectBeamPlottingParameters" : 
+    {
+        "MaxBufferedFrames" : "10000",
+        "PowerLimVec" : "{-60.0, 40.0}",
+        "RangeLimVec" : "{}",
+        "AngleLimVec" : "{}",
+
+        "ColorMapRange" : "{-60.0, 30.0}",
+        "BeamSectorWidthDeg" : "20.0",
+
+        "RangeSlicesToPlot" : "{2.0}",
+        "AngleSlicesToPlot" : "{0.0}",
+
+        "ThresholdAtRanges" : "{0.2, 2.0, 5.0}",
+        "ThresholdValues" : "{10.0, 5.0, 5.0}"
+    }
+}

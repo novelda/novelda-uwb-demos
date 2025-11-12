@@ -10,7 +10,7 @@ The concept of digital beamforming is thoroughly described in radar/signal proce
 
 After beamforming the **N** complex digital beamformed frames are fed into Range-Doppler processing for each individual beam, producing **N** Range-Doppler maps, one for each of the provided azimuth angles. You can select a single beam, e.g. `azBeamAngles = {0.0} # degrees` just to get the coherent combination of all the Tx/Rx channels, or you can set up as many beams as you like in the `{-90.0, 90.0}` field-of-view. You can also put the X7F202 module in a vertical orientation to accomplish elevation beamforming.
 
-**NOTE** The X7F202 only has 2 antenna elements which sets boundaries of beamwidths and beamsteering vectors.
+**NOTE** The X7F202 only has 2 antenna elements with limited directivity, which sets boundaries of beamwidths and beamsteering vectors.
 
 The demo provides options to configure the X7 radar chip, the beaforming angles, the Range-Doppler processing and the visualization, and allows both running live using a Novelda X7F202 radar module, or running playback on recorded data. For a description of the concept of Range-Doppler processing, please see the [Range-Doppler readme](../X7RangeDopplerRaw/X7RangeDopplerRaw_Readme.md#range-doppler-processing).
 
