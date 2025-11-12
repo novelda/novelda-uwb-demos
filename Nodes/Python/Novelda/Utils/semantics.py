@@ -7,6 +7,8 @@ ARRAY_SEMANTIC_RF_FLOAT32 = "rf_float32"
 ARRAY_SEMANTIC_RANGEDOPPLERPOWER_4D = "rangedoppler_power_4D"
 ARRAY_SEMANTIC_RANGEDOPPLERPOWER_IQ_4D = "rangedoppler_iq_4D"
 
+ARRAY_SEMANTIC_BBIQ_MULTIFRAME_FLOAT32 = "bbiq_multiframe_float32"
+
 # ----- python custom ------
 
 SIGSEM_RADAR_PARAMETERS = "RadarDirectParameters"

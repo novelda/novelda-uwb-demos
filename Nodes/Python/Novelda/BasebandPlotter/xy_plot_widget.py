@@ -34,7 +34,7 @@ class XY2DPlotWidget(pg.PlotWidget):
 
         self.xmark_prefix = xmark_prefix if xmark_prefix is not None else x_axis_name
         self.ymark_prefix = ymark_prefix if ymark_prefix is not None else y_axis_name
-        self.plot_mark_prefix = plot_mark_prefix if plot_mark_prefix is not None else "Plot"
+        self.plot_mark_prefix = plot_mark_prefix
 
         self.xaxis_unit = xaxis_unit
         self.yaxis_unit = y_axis_unit
@@ -49,6 +49,7 @@ class XY2DPlotWidget(pg.PlotWidget):
         self.setBackground(background_color)
 
         self.legend = self.plot_item.addLegend()
+        self.legend.anchor((1,0), (1,0), offset=(-150, 10))
 
         self.plot_data_items: dict[Any, pg.PlotDataItem] = {}
         # key: identifier (e.g., rxactive)
@@ -143,9 +144,14 @@ class XY2DPlotWidget(pg.PlotWidget):
         x_val = x_data[idx]
         y_val = y_data[idx]
 
-        self.click_point_label.setText(
-            f"{self.plot_mark_prefix}{identifier}\n{self.xmark_prefix}{idx}\n{self.xaxis_name}: {x_val:.3f}\n{self.ymark_prefix}: {y_val:.3f}"
-            )
+        if self.plot_mark_prefix is not None:
+            self.click_point_label.setText(
+                f"{self.plot_mark_prefix}{identifier}\n{self.xmark_prefix}{idx}\n{self.xaxis_name}: {x_val:.3f}\n{self.ymark_prefix}: {y_val:.3f}"
+                )
+        else:
+            self.click_point_label.setText(
+                f"{self.xmark_prefix}{idx}\n{self.xaxis_name}: {x_val:.3f}\n{self.ymark_prefix}: {y_val:.3f}"
+                )
 
         self.click_point_label.show()
         self.click_point_circle.setData([x_val], [y_val])
@@ -220,7 +226,7 @@ class XY2DPlotWidget(pg.PlotWidget):
             self.plot_data_items[identifier].setData(x_data, y_data)
         else:
             # create new plot
-            plot_data_item = self.plot_item.plot(x_data, y_data, pen=pg.mkPen(line_color, width=2))
+            plot_data_item = self.plot_item.plot(x_data, y_data, pen=pg.mkPen(line_color, width=line_width))
             self.plot_data_items[identifier] = plot_data_item
             if legend_label is not None:
                 self.legend.addItem(plot_data_item, legend_label)
@@ -236,6 +242,14 @@ class XY2DPlotWidget(pg.PlotWidget):
         self.update_click_label_pos()
         
         self.initialized = True
+    
+    def clear_data(self, identifier: Any):
+        if identifier in self.plot_data_items:
+            plot_data_item = self.plot_data_items.pop(identifier)
+            self.plot_item.removeItem(plot_data_item)
+            self.legend.removeItem(plot_data_item)
+            if self.curr_mark_identifier == identifier:
+                self.clear_mark()
     
     def change_xlims(self, xmin, xmax):
         self.plot_item.setXRange(xmin, xmax)
